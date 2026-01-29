@@ -1,0 +1,27 @@
+package com.okayji.exception;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+
+@AllArgsConstructor
+@Getter
+public enum AppError {
+    UNCATEGORIZED_EXCEPTION("Uncategorized Exception", HttpStatus.INTERNAL_SERVER_ERROR),
+    USERNAME_EXISTED("Username already exists", HttpStatus.BAD_REQUEST),
+    EMAIL_EXISTED("Email already exists", HttpStatus.BAD_REQUEST),
+    USER_NOT_FOUND("User not found", HttpStatus.NOT_FOUND),
+    UNAUTHENTICATED("Incorrect or expired token", HttpStatus.FORBIDDEN),
+    UNAUTHORIZED("You do not have access", HttpStatus.UNAUTHORIZED),
+
+    USERNAME_INVALID("Username must be at least {min} characters long", HttpStatus.BAD_REQUEST),
+    EMAIL_INVALID("Email invalid", HttpStatus.BAD_REQUEST),
+    PASSWORD_INVALID("Password must be at least {min} characters long", HttpStatus.BAD_REQUEST),
+    WRONG_PASSWORD("Wrong password", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH("Password does not match", HttpStatus.BAD_REQUEST),
+    ;
+
+    private final String message;
+    private final HttpStatusCode httpStatusCode;
+}
