@@ -18,6 +18,7 @@ public enum AppError {
     EMAIL_EXISTED("Email already exists", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND("User not found", HttpStatus.NOT_FOUND),
     POST_NOT_FOUND("Post not found", HttpStatus.NOT_FOUND),
+    COMMENT_NOT_FOUND("Comment not found", HttpStatus.NOT_FOUND),
 
     USERNAME_INVALID("Username must be at least {min} characters long", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID("Email invalid", HttpStatus.BAD_REQUEST),

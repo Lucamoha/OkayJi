@@ -40,7 +40,6 @@ public class PostController {
         postService.deletePostById(postId);
         return ApiResponse.builder()
                 .success(true)
-                .message("Delete post success")
                 .build();
     }
 

@@ -10,6 +10,8 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface PostMapper {
     @Mapping(source = "post.user.id", target = "userId")
+    @Mapping(source = "post.user.profile.fullName", target = "userFullName")
+    @Mapping(source = "post.user.profile.avatarUrl", target = "userAvatarUrl")
     PostResponse toPostResponse(Post post, boolean liked, long likesCount,  long commentsCount);
 
     @Mapping(target = "id", ignore = true)

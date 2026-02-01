@@ -1,15 +1,14 @@
 package com.okayji.feed.controller;
 
 import com.okayji.common.ApiResponse;
+import com.okayji.common.PageResponse;
 import com.okayji.feed.dto.request.CommentCreationRequest;
+import com.okayji.feed.dto.request.CommentUpdateRequest;
 import com.okayji.feed.dto.response.CommentResponse;
 import com.okayji.feed.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/comment")
@@ -18,12 +17,41 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    @PostMapping("/create")
-    ApiResponse<CommentResponse> createPost(@Valid @RequestBody CommentCreationRequest request) {
+    @PostMapping
+    ApiResponse<CommentResponse> createComment(@Valid @RequestBody CommentCreationRequest request) {
         return ApiResponse.<CommentResponse>builder()
                 .success(true)
-                .message("Comment success")
                 .data(commentService.createComment(request))
+                .build();
+    }
+
+    @PutMapping
+    ApiResponse<CommentResponse> updateComment(@Valid @RequestBody CommentUpdateRequest request) {
+        return ApiResponse.<CommentResponse>builder()
+                .success(true)
+                .data(commentService.updateComment(request))
+                .build();
+    }
+
+    @DeleteMapping("/{commentId}")
+    ApiResponse<?> deleteComment(@PathVariable String commentId) {
+        commentService.deleteComment(commentId);
+        return ApiResponse.builder()
+                .success(true)
+                .build();
+    }
+
+    @GetMapping()
+    ApiResponse<PageResponse<CommentResponse>> getListCommentInPost(
+            @RequestParam String postId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortType
+    ) {
+        return ApiResponse.<PageResponse<CommentResponse>>builder()
+                .success(true)
+                .data(commentService.getListCommentInPost(postId, page, size, sortBy, sortType))
                 .build();
     }
 }
