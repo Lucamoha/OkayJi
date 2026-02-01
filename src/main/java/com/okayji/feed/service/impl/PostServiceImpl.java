@@ -1,12 +1,11 @@
 package com.okayji.feed.service.impl;
 
+import com.okayji.enums.PostStatus;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
 import com.okayji.feed.dto.request.PostCreationRequest;
 import com.okayji.feed.dto.response.PostResponse;
-import com.okayji.feed.entity.Comment;
 import com.okayji.feed.entity.Post;
-import com.okayji.feed.entity.Reaction;
 import com.okayji.feed.repository.CommentRepository;
 import com.okayji.feed.repository.ReactionRepository;
 import com.okayji.identity.entity.User;
@@ -17,8 +16,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 
 @Service
@@ -37,15 +34,15 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
-        List<Reaction> reactions = reactionRepository.findByPostId(post.getId());
-        List<Comment> comments = commentRepository.findByPostId(post.getId());
-        boolean liked = false;
+        if (post.getStatus() != PostStatus.PUBLISHED
+                && !post.getUser().getId().equals(user.getId()))
+            throw new AppException(AppError.POST_NOT_FOUND);
 
-        for (Reaction reaction : reactions)
-            if (reaction.getUser().getId().equals(user.getId()))
-                liked = true;
+        long reactionsCount = reactionRepository.countByPost_Id(post.getId());
+        long commentsCount = commentRepository.countByPost_Id(post.getId());
+        boolean liked = reactionRepository.existsByPostIdAndUserId(post.getId(), user.getId());
 
-        return postMapper.toPostResponse(post, liked, reactions.size(), comments.size());
+        return postMapper.toPostResponse(post, liked, reactionsCount, commentsCount);
     }
 
     @Override

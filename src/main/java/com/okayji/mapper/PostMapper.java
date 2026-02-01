@@ -10,9 +10,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface PostMapper {
     @Mapping(source = "post.user.id", target = "userId")
-    PostResponse toPostResponse(Post post, boolean liked, int likesCount,  int commentsCount);
+    PostResponse toPostResponse(Post post, boolean liked, long likesCount,  long commentsCount);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true)
     @Mapping(source = "user.id", target = "user.id")
     Post toPost(PostCreationRequest postCreationRequest, User user);
 }

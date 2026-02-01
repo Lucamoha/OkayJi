@@ -1,5 +1,6 @@
 package com.okayji.feed.entity;
 
+import com.okayji.enums.PostStatus;
 import com.okayji.identity.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,4 +37,7 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Reaction> reactions;
+
+    @Enumerated(EnumType.STRING)
+    PostStatus status = PostStatus.PUBLISHED;
 }
