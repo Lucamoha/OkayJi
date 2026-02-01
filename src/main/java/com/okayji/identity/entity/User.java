@@ -13,9 +13,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -36,22 +34,21 @@ public class User implements UserDetails {
     @Column(unique = true, columnDefinition = "VARCHAR(255) COLLATE utf8mb4_unicode_ci", nullable = false)
     String email;
     String password;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     Instant createdAt;
     String oauthProvider;
     String oauthId;
+
     @Enumerated(EnumType.STRING)
-    UserStatus status = UserStatus.INACTIVE;
+    UserStatus status = UserStatus.ACTIVE;
 
     @ManyToMany(fetch = FetchType.EAGER)
     Set<Role> roles;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    UserProfile profile;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<UserPost> posts = new ArrayList<>();
+    Profile profile;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

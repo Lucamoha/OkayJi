@@ -1,6 +1,6 @@
 package com.okayji.config;
 
-import com.okayji.dto.ApiResponse;
+import com.okayji.common.ApiResponse;
 import com.okayji.exception.AppError;
 import com.okayji.identity.repository.InvalidatedTokenRepository;
 import com.okayji.identity.service.CustomUserDetailsService;
@@ -37,15 +37,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final InvalidatedTokenRepository invalidatedTokenRepository;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.equals("/swagger-ui.html");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        log.info("{} {}", request.getMethod(), request.getRequestURI());
-
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasLength(authHeader) && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            log.info("token: {}...", token.length() > 60 ? token.substring(0, 60) : token);
 
             try {
                 Claims claims = jwtService.getClaimsJws(token).getBody();
@@ -55,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     throw new JwtException("Invalid token");
 
                 String username =  claims.getSubject();
-                log.info("username: {}", username);
+                log.info("username: {} - {} {}", username, request.getMethod(), request.getRequestURI());
 
                 UserDetails userDetails = userService.userDetailsService().loadUserByUsername(username);
 
@@ -84,6 +89,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
         }
-        doFilter(request, response, filterChain);
+        filterChain.doFilter(request, response);
     }
 }

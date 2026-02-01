@@ -1,5 +1,6 @@
 package com.okayji.identity.entity;
 
+import com.okayji.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -9,18 +10,23 @@ import java.time.LocalDate;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserProfile {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Profile {
     @Id
     @Column(name = "user_id")
+    @EqualsAndHashCode.Include
     String userId;
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     User user;
     String fullName;
+    @Enumerated(EnumType.STRING)
+    Gender gender;
     String bio;
     LocalDate birthday;
     String avatarUrl;

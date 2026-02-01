@@ -1,7 +1,7 @@
 package com.okayji.identity.controller;
 
 import com.okayji.identity.dto.request.UserCreationRequest;
-import com.okayji.dto.ApiResponse;
+import com.okayji.common.ApiResponse;
 import com.okayji.identity.dto.response.UserResponse;
 import com.okayji.identity.service.UserService;
 import jakarta.validation.Valid;

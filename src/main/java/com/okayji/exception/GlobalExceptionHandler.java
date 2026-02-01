@@ -1,8 +1,9 @@
 package com.okayji.exception;
 
-import com.okayji.dto.ApiResponse;
+import com.okayji.common.ApiResponse;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import io.jsonwebtoken.JwtException;
@@ -108,6 +109,19 @@ public class GlobalExceptionHandler {
                 case "user.uk_user_email" -> appError = AppError.EMAIL_EXISTED;
             }
         }
+        return ResponseEntity.status(appError.getHttpStatusCode())
+                .body(ApiResponse.builder()
+                        .success(false)
+                        .message(appError.getMessage())
+                        .build());
+    }
+
+    /*
+     * Issues with the request body
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ResponseEntity<ApiResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        AppError appError = AppError.INVALID_INPUT_DATA;
         return ResponseEntity.status(appError.getHttpStatusCode())
                 .body(ApiResponse.builder()
                         .success(false)

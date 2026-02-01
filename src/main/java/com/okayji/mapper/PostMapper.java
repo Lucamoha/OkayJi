@@ -1,0 +1,18 @@
+package com.okayji.mapper;
+
+import com.okayji.feed.dto.request.PostCreationRequest;
+import com.okayji.feed.dto.response.PostResponse;
+import com.okayji.feed.entity.Post;
+import com.okayji.identity.entity.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+@Mapper(componentModel = "spring")
+public interface PostMapper {
+    @Mapping(source = "post.user.id", target = "userId")
+    PostResponse toPostResponse(Post post, boolean liked, int likesCount,  int commentsCount);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "user.id", target = "user.id")
+    Post toPost(PostCreationRequest postCreationRequest, User user);
+}

@@ -5,6 +5,7 @@ import com.okayji.identity.dto.response.AuthenticationResponse;
 import com.okayji.identity.entity.InvalidatedToken;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
+import com.okayji.identity.entity.User;
 import com.okayji.identity.repository.InvalidatedTokenRepository;
 import com.okayji.identity.service.AuthenticationService;
 import com.okayji.identity.service.JwtService;
@@ -62,10 +63,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .map(GrantedAuthority::getAuthority)
                 .filter(Objects::nonNull)
                 .filter(authority -> authority.startsWith("ROLE_")).toList();
+        User user = (User) authentication.getPrincipal();
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtService.generateAccessToken(
-                        authenticationRequest.getUsername(),
+                        user.getId(),
+                        user.getUsername(),
                         authorities,
                         authenticationRequest.isRememberMe()))
                 .build();

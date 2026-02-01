@@ -23,13 +23,15 @@ public class JwtServiceImpl implements JwtService {
     private int accessTokenTimeWithRemember;
 
     @Override
-    public String generateAccessToken(String username,
+    public String generateAccessToken(String userId,
+                                      String username,
                                       List<String> authorities,
                                       boolean rememberMe) {
         log.info("Generate access token for user {} with authorities {}", username, authorities);
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", authorities);
+        claims.put("userId", userId);
 
         long liveTime = (rememberMe
                 ? accessTokenTimeWithRemember

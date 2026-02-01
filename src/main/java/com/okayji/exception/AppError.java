@@ -9,11 +9,15 @@ import org.springframework.http.HttpStatusCode;
 @Getter
 public enum AppError {
     UNCATEGORIZED_EXCEPTION("Uncategorized Exception", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_INPUT_DATA("Invalid input data", HttpStatus.BAD_REQUEST),
+
+    UNAUTHENTICATED("Incorrect or expired token", HttpStatus.FORBIDDEN),
+    UNAUTHORIZED("You do not have access", HttpStatus.UNAUTHORIZED),
+
     USERNAME_EXISTED("Username already exists", HttpStatus.BAD_REQUEST),
     EMAIL_EXISTED("Email already exists", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND("User not found", HttpStatus.NOT_FOUND),
-    UNAUTHENTICATED("Incorrect or expired token", HttpStatus.FORBIDDEN),
-    UNAUTHORIZED("You do not have access", HttpStatus.UNAUTHORIZED),
+    POST_NOT_FOUND("Post not found", HttpStatus.NOT_FOUND),
 
     USERNAME_INVALID("Username must be at least {min} characters long", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID("Email invalid", HttpStatus.BAD_REQUEST),

@@ -6,6 +6,6 @@ import io.jsonwebtoken.Jws;
 import java.util.List;
 
 public interface JwtService {
-    String generateAccessToken(String username, List<String> authorities, boolean rememberMe);
+    String generateAccessToken(String userId, String username, List<String> authorities, boolean rememberMe);
     Jws<Claims> getClaimsJws(String token);
 }

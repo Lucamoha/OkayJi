@@ -1,10 +1,11 @@
 package com.okayji.identity.service.impl;
 
+import com.okayji.enums.Gender;
 import com.okayji.identity.dto.request.UserCreationRequest;
 import com.okayji.identity.dto.response.UserResponse;
+import com.okayji.identity.entity.Profile;
 import com.okayji.identity.entity.Role;
 import com.okayji.identity.entity.User;
-import com.okayji.identity.entity.UserProfile;
 import com.okayji.enums.UserRole;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
@@ -48,12 +49,13 @@ public class UserServiceImpl implements UserService {
         roleRepository.findById(UserRole.USER).ifPresent(roles::add);
         user.setRoles(roles);
 
-        UserProfile userProfile = UserProfile.builder()
+        Profile profile = Profile.builder()
                 .user(user)
                 .birthday(userCreationRequest.getBirthday())
                 .fullName(userCreationRequest.getFullName())
+                .gender(userCreationRequest.getGender())
                 .build();
-        user.setProfile(userProfile);
+        user.setProfile(profile);
 
         user = userRepository.saveAndFlush(user);
         return userMapper.toUserResponse(user);

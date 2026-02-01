@@ -1,4 +1,4 @@
-package com.okayji.dto;
+package com.okayji.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

@@ -1,6 +1,6 @@
 package com.okayji.identity.controller;
 
-import com.okayji.dto.ApiResponse;
+import com.okayji.common.ApiResponse;
 import com.okayji.identity.dto.request.AuthenticationRequest;
 import com.okayji.identity.dto.response.AuthenticationResponse;
 import com.okayji.identity.service.AuthenticationService;
