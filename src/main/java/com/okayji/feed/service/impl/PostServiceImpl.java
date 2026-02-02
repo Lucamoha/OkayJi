@@ -11,8 +11,13 @@ import com.okayji.feed.repository.ReactionRepository;
 import com.okayji.identity.entity.User;
 import com.okayji.feed.repository.PostRepository;
 import com.okayji.feed.service.PostService;
+import com.okayji.identity.repository.UserRepository;
 import com.okayji.mapper.PostMapper;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -26,6 +31,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final ReactionRepository reactionRepository;
     private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
 
     @Override
     public PostResponse getPostById(String id) {
@@ -65,6 +71,24 @@ public class PostServiceImpl implements PostService {
             throw new AppException(AppError.UNAUTHORIZED);
 
         postRepository.delete(post);
+    }
+
+    @Override
+    public Page<PostResponse> getPostsByUserId(String userId, int page, int size) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+
+        User user = getCurrentUser();
+
+        Pageable pageable = PageRequest
+                .of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        return postRepository.findByUser_Id(userId, pageable)
+                .map(post -> postMapper
+                        .toPostResponse(post,
+                                reactionRepository.existsByPostIdAndUserId(post.getId(), user.getId()),
+                                reactionRepository.countByPost_Id(post.getId()),
+                                commentRepository.countByPost_Id(post.getId())));
     }
 
     private User getCurrentUser() {

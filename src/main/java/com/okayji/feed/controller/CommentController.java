@@ -1,7 +1,6 @@
 package com.okayji.feed.controller;
 
 import com.okayji.common.ApiResponse;
-import com.okayji.common.PageResponse;
 import com.okayji.feed.dto.request.CommentCreationRequest;
 import com.okayji.feed.dto.request.CommentUpdateRequest;
 import com.okayji.feed.dto.response.CommentResponse;
@@ -38,20 +37,6 @@ public class CommentController {
         commentService.deleteComment(commentId);
         return ApiResponse.builder()
                 .success(true)
-                .build();
-    }
-
-    @GetMapping()
-    ApiResponse<PageResponse<CommentResponse>> getListCommentInPost(
-            @RequestParam String postId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortType
-    ) {
-        return ApiResponse.<PageResponse<CommentResponse>>builder()
-                .success(true)
-                .data(commentService.getListCommentInPost(postId, page, size, sortBy, sortType))
                 .build();
     }
 }

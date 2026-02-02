@@ -2,11 +2,14 @@ package com.okayji.feed.controller;
 
 import com.okayji.common.ApiResponse;
 import com.okayji.feed.dto.request.PostCreationRequest;
+import com.okayji.feed.dto.response.CommentResponse;
 import com.okayji.feed.dto.response.PostResponse;
+import com.okayji.feed.service.CommentService;
 import com.okayji.feed.service.PostService;
 import com.okayji.feed.service.ReactionService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,6 +19,7 @@ public class PostController {
 
     private PostService postService;
     private ReactionService reactionService;
+    private CommentService commentService;
 
     @GetMapping("/{postId}")
     ApiResponse<PostResponse> getPost(@PathVariable String postId) {
@@ -23,6 +27,18 @@ public class PostController {
                 .success(true)
                 .message("Get post success")
                 .data(postService.getPostById(postId))
+                .build();
+    }
+
+    @GetMapping("/{postId}/comments")
+    ApiResponse<Page<CommentResponse>> getCommentsByPost(
+            @PathVariable String postId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ApiResponse.<Page<CommentResponse>>builder()
+                .success(true)
+                .data(commentService.getCommentsByPostId(postId, page, size))
                 .build();
     }
 

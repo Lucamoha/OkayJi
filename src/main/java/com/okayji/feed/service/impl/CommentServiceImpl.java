@@ -1,6 +1,5 @@
 package com.okayji.feed.service.impl;
 
-import com.okayji.common.PageResponse;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
 import com.okayji.feed.dto.request.CommentCreationRequest;
@@ -16,6 +15,7 @@ import com.okayji.mapper.CommentMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -74,26 +74,15 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public PageResponse<CommentResponse> getListCommentInPost(String postId, int page, int size, String sortBy, String sortType) {
-        Sort sort;
+    public Page<CommentResponse> getCommentsByPostId(String postId, int page, int size) {
+        postRepository.findById(postId)
+                .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
-        if (sortType.equals("asc"))
-            sort = Sort.by(Sort.Direction.ASC, sortBy);
-        else
-            sort = Sort.by(Sort.Direction.DESC, sortBy);
+        Pageable pageable = PageRequest
+                .of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-        Page<CommentResponse> pageable = commentRepository.findAll(pageRequest).map(comment -> commentMapper.toCommentResponse(comment));
-
-        return PageResponse.<CommentResponse>builder()
-                .page(page)
-                .size(size)
-                .totalElements(pageable.getTotalElements())
-                .totalPages(pageable.getTotalPages())
-                .sortBy(sortBy)
-                .sortType(sortType)
-                .results(pageable.stream().toList())
-                .build();
+        return commentRepository.findByPost_Id(postId, pageable)
+                .map(commentMapper::toCommentResponse);
     }
 
     private User getCurrentUser() {
