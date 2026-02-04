@@ -13,7 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/post")
+@RequestMapping("/posts")
 @AllArgsConstructor
 public class PostController {
 
@@ -42,7 +42,7 @@ public class PostController {
                 .build();
     }
 
-    @PostMapping("/create")
+    @PostMapping
     ApiResponse<PostResponse> createPost(@Valid @RequestBody PostCreationRequest postCreationRequest) {
         return ApiResponse.<PostResponse>builder()
                 .success(true)
@@ -59,7 +59,7 @@ public class PostController {
                 .build();
     }
 
-    @PostMapping("/like/{postId}")
+    @PostMapping("/{postId}/like")
     ApiResponse<?> reactPost(@PathVariable String postId) {
         reactionService.like(postId);
         return ApiResponse.builder()
@@ -67,7 +67,7 @@ public class PostController {
                 .build();
     }
 
-    @PostMapping("/unlike/{postId}")
+    @PostMapping("{postId}/unlike")
     ApiResponse<?> unReactPost(@PathVariable String postId) {
         reactionService.unlike(postId);
         return ApiResponse.builder()

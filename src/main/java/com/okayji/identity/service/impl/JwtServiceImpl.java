@@ -31,7 +31,6 @@ public class JwtServiceImpl implements JwtService {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", authorities);
-        claims.put("userId", userId);
 
         long liveTime = (rememberMe
                 ? accessTokenTimeWithRemember
@@ -39,7 +38,7 @@ public class JwtServiceImpl implements JwtService {
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(userId)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + liveTime))
                 .id(UUID.randomUUID().toString())

@@ -2,8 +2,9 @@ package com.okayji.config;
 
 import com.okayji.common.ApiResponse;
 import com.okayji.exception.AppError;
+import com.okayji.identity.entity.User;
 import com.okayji.identity.repository.InvalidatedTokenRepository;
-import com.okayji.identity.service.CustomUserDetailsService;
+import com.okayji.identity.repository.UserRepository;
 import com.okayji.identity.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -33,7 +34,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final CustomUserDetailsService userService;
+    private final UserRepository userRepository;
     private final InvalidatedTokenRepository invalidatedTokenRepository;
 
     @Override
@@ -59,14 +60,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (invalidatedTokenRepository.existsById(jwtId))
                     throw new JwtException("Invalid token");
 
-                String username =  claims.getSubject();
-                log.info("username: {} - {} {}", username, request.getMethod(), request.getRequestURI());
+                String userId =  claims.getSubject();
+                log.info("userId: {} - {} {}", userId, request.getMethod(), request.getRequestURI());
 
-                UserDetails userDetails = userService.userDetailsService().loadUserByUsername(username);
+                User user = userRepository.findUserById(userId);
 
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
+                        user, null, user.getAuthorities()
                 );
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 context.setAuthentication(authentication);

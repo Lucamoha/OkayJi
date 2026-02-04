@@ -26,7 +26,7 @@ public class Profile {
     User user;
     String fullName;
     @Enumerated(EnumType.STRING)
-    Gender gender;
+    Gender gender = Gender.OTHER;
     String bio;
     LocalDate birthday;
     String avatarUrl;

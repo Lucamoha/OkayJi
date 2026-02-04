@@ -11,7 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/profile")
+@RequestMapping("/profiles")
 @AllArgsConstructor
 public class ProfileController {
 
@@ -48,7 +48,7 @@ public class ProfileController {
                 .build();
     }
 
-    @PutMapping
+    @PutMapping("/my-profile")
     ApiResponse<ProfileResponse> updateProfile(@RequestBody ProfileUpdateRequest profileUpdateRequest) {
         return ApiResponse.<ProfileResponse>builder()
                 .success(true)
