@@ -1,11 +1,13 @@
 package com.okayji.mapper;
 
 import com.okayji.feed.dto.request.PostCreationRequest;
+import com.okayji.feed.dto.request.PostUpdateRequest;
 import com.okayji.feed.dto.response.PostResponse;
 import com.okayji.feed.entity.Post;
 import com.okayji.identity.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface PostMapper {
@@ -19,4 +21,6 @@ public interface PostMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(source = "user.id", target = "user.id")
     Post toPost(PostCreationRequest postCreationRequest, User user);
+
+    void updatePost(@MappingTarget Post post, PostUpdateRequest postUpdateRequest);
 }

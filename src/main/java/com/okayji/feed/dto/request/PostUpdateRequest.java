@@ -7,7 +7,7 @@ import lombok.experimental.FieldDefaults;
 
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CommentUpdateRequest {
+public class PostUpdateRequest {
     @NotBlank(message = "INVALID_INPUT_DATA")
     String content;
 }

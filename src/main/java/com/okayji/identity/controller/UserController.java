@@ -4,6 +4,8 @@ import com.okayji.identity.dto.request.UserChangePasswordRequest;
 import com.okayji.common.ApiResponse;
 import com.okayji.identity.dto.request.UserChangeUsernameRequest;
 import com.okayji.identity.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -11,10 +13,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/users")
 @AllArgsConstructor
+@Tag(name = "User Controller")
 public class UserController {
     private final UserService userService;
 
     @PostMapping("/change-password")
+    @Operation(summary = "Change users password")
     ApiResponse<?> changePassword(@RequestBody @Valid UserChangePasswordRequest request) {
         userService.changePassword(request);
 
@@ -25,6 +29,7 @@ public class UserController {
     }
 
     @PostMapping("/change-username")
+    @Operation(summary = "Change users username")
     ApiResponse<?> changeUsername(@RequestBody @Valid UserChangeUsernameRequest request) {
         userService.changeUsername(request);
 

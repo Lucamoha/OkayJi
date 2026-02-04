@@ -7,6 +7,8 @@ import com.okayji.identity.dto.response.AuthenticationResponse;
 import com.okayji.identity.dto.response.UserResponse;
 import com.okayji.identity.service.AuthenticationService;
 import com.okayji.identity.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -18,11 +20,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 @Slf4j(topic = "AUTHENTICATION-CONTROLLER")
 @AllArgsConstructor
+@Tag(name = "Authentication Controller")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserService userService;
 
     @PostMapping("/login")
+    @Operation(summary = "Log in", description = "Get access token by username and password")
     public ApiResponse<AuthenticationResponse> logIn(@RequestBody AuthenticationRequest request) {
         log.info("User login request: username={}", request.getUsername());
 
@@ -34,6 +38,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "Log out")
     public ApiResponse<Void> logOut(HttpServletRequest request, HttpServletResponse response) {
         authenticationService.logout(request, response);
 
@@ -44,6 +49,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
+    @Operation(summary = "Sign up")
     ApiResponse<UserResponse> signUp(@RequestBody @Valid UserCreationRequest usercreationRequest) {
         log.info("User sign up request: username={}", usercreationRequest.getUsername());
 

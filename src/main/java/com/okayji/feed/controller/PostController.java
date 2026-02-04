@@ -2,11 +2,14 @@ package com.okayji.feed.controller;
 
 import com.okayji.common.ApiResponse;
 import com.okayji.feed.dto.request.PostCreationRequest;
+import com.okayji.feed.dto.request.PostUpdateRequest;
 import com.okayji.feed.dto.response.CommentResponse;
 import com.okayji.feed.dto.response.PostResponse;
 import com.okayji.feed.service.CommentService;
 import com.okayji.feed.service.PostService;
 import com.okayji.feed.service.ReactionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/posts")
 @AllArgsConstructor
+@Tag(name = "Post Controller")
 public class PostController {
 
     private PostService postService;
@@ -22,6 +26,7 @@ public class PostController {
     private CommentService commentService;
 
     @GetMapping("/{postId}")
+    @Operation(summary = "Get post by postId")
     ApiResponse<PostResponse> getPost(@PathVariable String postId) {
         return ApiResponse.<PostResponse>builder()
                 .success(true)
@@ -30,7 +35,19 @@ public class PostController {
                 .build();
     }
 
+    @PutMapping("/{postId}")
+    @Operation(summary = "Update post by postId")
+    ApiResponse<PostResponse> updatePost(@PathVariable String postId,
+                                         @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
+        return ApiResponse.<PostResponse>builder()
+                .success(true)
+                .message("Update post success")
+                .data(postService.updatePost(postId, postUpdateRequest))
+                .build();
+    }
+
     @GetMapping("/{postId}/comments")
+    @Operation(summary = "Get comments in post by postId")
     ApiResponse<Page<CommentResponse>> getCommentsByPost(
             @PathVariable String postId,
             @RequestParam(defaultValue = "0") int page,
@@ -43,6 +60,7 @@ public class PostController {
     }
 
     @PostMapping
+    @Operation(summary = "Create post")
     ApiResponse<PostResponse> createPost(@Valid @RequestBody PostCreationRequest postCreationRequest) {
         return ApiResponse.<PostResponse>builder()
                 .success(true)
@@ -52,6 +70,7 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}")
+    @Operation(summary = "Delete post by postId")
     ApiResponse<?> deletePost(@PathVariable String postId) {
         postService.deletePostById(postId);
         return ApiResponse.builder()
@@ -60,6 +79,7 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/like")
+    @Operation(summary = "React post by postId")
     ApiResponse<?> reactPost(@PathVariable String postId) {
         reactionService.like(postId);
         return ApiResponse.builder()
@@ -68,6 +88,7 @@ public class PostController {
     }
 
     @PostMapping("{postId}/unlike")
+    @Operation(summary = "Unreact post by postId")
     ApiResponse<?> unReactPost(@PathVariable String postId) {
         reactionService.unlike(postId);
         return ApiResponse.builder()

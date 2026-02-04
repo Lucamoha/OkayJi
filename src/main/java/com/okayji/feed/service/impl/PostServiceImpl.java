@@ -4,6 +4,7 @@ import com.okayji.enums.PostStatus;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
 import com.okayji.feed.dto.request.PostCreationRequest;
+import com.okayji.feed.dto.request.PostUpdateRequest;
 import com.okayji.feed.dto.response.PostResponse;
 import com.okayji.feed.entity.Post;
 import com.okayji.feed.repository.CommentRepository;
@@ -44,11 +45,10 @@ public class PostServiceImpl implements PostService {
                 && !post.getUser().getId().equals(user.getId()))
             throw new AppException(AppError.POST_NOT_FOUND);
 
-        long reactionsCount = reactionRepository.countByPost_Id(post.getId());
-        long commentsCount = commentRepository.countByPost_Id(post.getId());
-        boolean liked = reactionRepository.existsByPostIdAndUserId(post.getId(), user.getId());
-
-        return postMapper.toPostResponse(post, liked, reactionsCount, commentsCount);
+        return postMapper.toPostResponse(post,
+                reactionRepository.existsByPostIdAndUserId(post.getId(), user.getId()),
+                reactionRepository.countByPost_Id(post.getId()),
+                commentRepository.countByPost_Id(post.getId()));
     }
 
     @Override
@@ -58,6 +58,25 @@ public class PostServiceImpl implements PostService {
         Post post = postMapper.toPost(postCreationRequest, user);
         postRepository.save(post);
         return postMapper.toPostResponse(post, false, 0, 0);
+    }
+
+    @Override
+    public PostResponse updatePost(String postId, PostUpdateRequest postUpdateRequest) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
+
+        User user = getCurrentUser();
+
+        if (!user.getId().equals(post.getUser().getId()))
+            throw new AppException(AppError.UNAUTHORIZED);
+
+        postMapper.updatePost(post, postUpdateRequest);
+        postRepository.save(post);
+
+        return postMapper.toPostResponse(post,
+                reactionRepository.existsByPostIdAndUserId(post.getId(), user.getId()),
+                reactionRepository.countByPost_Id(post.getId()),
+                commentRepository.countByPost_Id(post.getId()));
     }
 
     @Override

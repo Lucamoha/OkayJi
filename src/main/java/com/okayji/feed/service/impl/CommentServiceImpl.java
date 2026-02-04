@@ -45,8 +45,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentResponse updateComment(CommentUpdateRequest request) {
-        String commentId = request.getId();
+    public CommentResponse updateComment(String commentId, CommentUpdateRequest request) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(AppError.COMMENT_NOT_FOUND));
 
