@@ -31,6 +31,9 @@ public enum AppError {
     NOT_FRIEND("You are not friends", HttpStatus.BAD_REQUEST),
     FRIEND_REQUEST_NOT_FOUND("Friend request not found", HttpStatus.NOT_FOUND),
     FRIEND_REQUEST_EXISTS("Friend request already exists", HttpStatus.BAD_REQUEST),
+
+    CHAT_NOT_FOUND("Chat not found", HttpStatus.NOT_FOUND),
+    USER_ALREADY_IN_CHAT("User is already in chat", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;

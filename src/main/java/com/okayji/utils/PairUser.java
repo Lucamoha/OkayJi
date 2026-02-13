@@ -15,4 +15,8 @@ public class PairUser {
             throw new IllegalArgumentException();
         return (a.getId().compareTo(b.getId()) < 0) ? new PairUser(a, b) : new PairUser(b, a);
     }
+
+    public String makeKey() {
+        return low.getId() + "_" + high.getId();
+    }
 }

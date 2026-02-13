@@ -1,5 +1,6 @@
 package com.okayji.feed.service.impl;
 
+import com.okayji.chat.service.ChatService;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
 import com.okayji.feed.dto.response.FriendReqResponse;
@@ -9,7 +10,6 @@ import com.okayji.feed.repository.FriendRepository;
 import com.okayji.feed.repository.FriendRequestRepository;
 import com.okayji.feed.service.FriendService;
 import com.okayji.identity.dto.response.ProfileBasicResponse;
-import com.okayji.identity.dto.response.ProfileResponse;
 import com.okayji.identity.entity.User;
 import com.okayji.identity.repository.UserRepository;
 import com.okayji.mapper.FriendRequestMapper;
@@ -33,9 +33,10 @@ public class FriendServiceImpl implements FriendService {
     private final UserRepository userRepository;
     private final ProfileMapper profileMapper;
     private final FriendRequestMapper friendRequestMapper;
+    private final ChatService chatService;
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = AppException.class)
     public void createFriendRequest(String toUserIdOrUsername) {
         User sender = getCurrentUser();
         User receiver = userRepository.findUserByIdOrUsername(toUserIdOrUsername, toUserIdOrUsername)
@@ -65,7 +66,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = AppException.class)
     public void acceptFriendRequest(String friendRequestId) {
         FriendRequest friendRequest = friendRequestRepository.findById(friendRequestId)
                 .orElseThrow(() -> new AppException(AppError.FRIEND_REQUEST_NOT_FOUND));
@@ -84,6 +85,7 @@ public class FriendServiceImpl implements FriendService {
                 .userHigh(pair.getHigh())
                 .build());
         friendRequestRepository.delete(friendRequest);
+        chatService.createDirectChat(sender.getId());
     }
 
     @Override

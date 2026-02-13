@@ -15,7 +15,7 @@ import java.time.Instant;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(
-        indexes = {@Index(name = "idx_post", columnList = "post_id")}
+        indexes = {@Index(name = "idx_post_created_at", columnList = "post_id,created_at")}
 )
 public class Comment {
     @Id
