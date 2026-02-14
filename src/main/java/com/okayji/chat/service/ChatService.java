@@ -1,6 +1,7 @@
 package com.okayji.chat.service;
 
 import com.okayji.chat.dto.request.CreateGroupChatRequest;
+import com.okayji.chat.dto.request.UpdateGroupChatRequest;
 import com.okayji.chat.dto.response.ChatMemberResponse;
 import com.okayji.chat.dto.response.ChatResponse;
 import com.okayji.chat.dto.response.MessageResponse;
@@ -13,6 +14,7 @@ public interface ChatService {
     void leaveGroupChat(String userId, String groupId);
     Long unreadCount(String userId);
     ChatResponse createGroupChat(String userId, CreateGroupChatRequest createGroupChatRequest);
+    ChatResponse updateGroupChat(String userId, String groupId, UpdateGroupChatRequest updateGroupChatRequest);
     Page<ChatResponse> getChats(String userId, int page, int size);
     ChatResponse getChat(String userId, String chatId);
     List<ChatMemberResponse> getMembers(String userId, String chatId);

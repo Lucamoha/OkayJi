@@ -1,6 +1,7 @@
 package com.okayji.chat.controller;
 
 import com.okayji.chat.dto.request.CreateGroupChatRequest;
+import com.okayji.chat.dto.request.UpdateGroupChatRequest;
 import com.okayji.chat.dto.response.ChatMemberResponse;
 import com.okayji.chat.dto.response.ChatResponse;
 import com.okayji.chat.dto.response.MessageResponse;
@@ -29,7 +30,7 @@ public class ChatController {
     @GetMapping
     @Operation(summary = "Get user chats list")
     ApiResponse<Page<ChatResponse>> getMyChats(@RequestParam(defaultValue = "0") int page,
-                                               @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.<Page<ChatResponse>>builder()
                 .success(true)
                 .data(chatService.getChats(getCurrentUser().getId(), page, size))
@@ -66,8 +67,8 @@ public class ChatController {
     @GetMapping("/{chatId}/messages")
     @Operation(summary = "Get messages in chat")
     ApiResponse<Page<MessageResponse>> getMessages(@PathVariable String chatId,
-                                                   @RequestParam(defaultValue = "0") int page,
-                                                   @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.<Page<MessageResponse>>builder()
                 .success(true)
                 .data(chatService.getMessages(getCurrentUser().getId(), chatId, page, size))
@@ -89,6 +90,17 @@ public class ChatController {
         chatService.leaveGroupChat(getCurrentUser().getId(), groupId);
         return ApiResponse.builder()
                 .success(true)
+                .build();
+    }
+
+    @PutMapping("/group/{groupId}")
+    @Operation(summary = "Update group chat information")
+    ApiResponse<ChatResponse> updateGroupChat(
+            @PathVariable String groupId,
+            @Valid @RequestBody UpdateGroupChatRequest request) {
+        return ApiResponse.<ChatResponse>builder()
+                .success(true)
+                .data(chatService.updateGroupChat(getCurrentUser().getId(), groupId, request))
                 .build();
     }
 

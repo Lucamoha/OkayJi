@@ -17,3 +17,13 @@ jwt:
   signerKey: ${JWT_SIGNER_KEY}
   accessTokenTime: 1 # day
   accessTokenTimeWithRemember: 14 # day
+
+aws:
+  region: ap-southeast-1
+  s3:
+    bucket-name: okayji
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+presigned-url:
+  expiration-minutes: 10

@@ -1,6 +1,7 @@
 package com.okayji.chat.service.impl;
 
 import com.okayji.chat.dto.request.CreateGroupChatRequest;
+import com.okayji.chat.dto.request.UpdateGroupChatRequest;
 import com.okayji.chat.dto.response.ChatMemberResponse;
 import com.okayji.chat.dto.response.ChatResponse;
 import com.okayji.chat.dto.response.MessageResponse;
@@ -139,6 +140,30 @@ public class ChatServiceImpl implements ChatService {
 
         chatMemberRepository.saveAll(chatMembers);
         return chatMapper.toChatResponse(chat, 0L);
+    }
+
+    @Override
+    public ChatResponse updateGroupChat(String userId,
+                                        String groupId,
+                                        UpdateGroupChatRequest updateGroupChatRequest) {
+        if (!chatMemberRepository.existsByChat_IdAndMember_Id(groupId, userId))
+            throw new AppException(AppError.UNAUTHORIZED);
+
+        Chat chat = chatRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(AppError.CHAT_NOT_FOUND));
+
+        if (chat.getType() != ChatType.GROUP)
+            throw new AppException(AppError.INVALID_INPUT_DATA);
+
+        chat.setChatName(updateGroupChatRequest.getChatName());
+        if (updateGroupChatRequest.getChatAvatarUrl() != null) {
+            chat.setChatAvatarUrl(updateGroupChatRequest.getChatAvatarUrl());
+        }
+
+        chatRepository.save(chat);
+        return chatMapper.toChatResponse(
+                chat,
+                chatRepository.unreadCount(userId, groupId));
     }
 
     @Override

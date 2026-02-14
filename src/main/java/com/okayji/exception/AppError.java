@@ -31,6 +31,8 @@ public enum AppError {
 
     CHAT_NOT_FOUND("Chat not found", HttpStatus.NOT_FOUND),
     USER_ALREADY_IN_CHAT("User is already in chat", HttpStatus.BAD_REQUEST),
+
+    MAX_FILE_SIZE("File size exceeds 5MB limit", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;
