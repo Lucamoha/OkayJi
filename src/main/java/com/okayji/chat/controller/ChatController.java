@@ -83,6 +83,15 @@ public class ChatController {
                 .build();
     }
 
+    @PostMapping("/group/{groupId}/leave")
+    @Operation(summary = "Leave group chat")
+    ApiResponse<?> leaveGroupChat(@PathVariable String groupId) {
+        chatService.leaveGroupChat(getCurrentUser().getId(), groupId);
+        return ApiResponse.builder()
+                .success(true)
+                .build();
+    }
+
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (User) authentication.getPrincipal();

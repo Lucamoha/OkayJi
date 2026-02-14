@@ -9,8 +9,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 public class MessageRequest {
-    @NotBlank(message = "INVALID_INPUT_DATA")
+    @NotBlank(message = "Message type must not be blank")
     MessageType type; // TEXT, IMAGE
-    @NotBlank(message = "INVALID_INPUT_DATA")
+    @NotBlank(message = "Content must not be blank")
     String content;
 }

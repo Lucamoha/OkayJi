@@ -3,6 +3,7 @@ package com.okayji.exception;
 import com.okayji.common.ApiResponse;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,9 +20,6 @@ import java.util.Objects;
 @RestControllerAdvice
 @Slf4j(topic = "GLOBAL-EXCEPTION-HANDLER")
 public class GlobalExceptionHandler {
-    private static final String MIN_ATTRIBUTE = "min";
-    private static final String MAX_ATTRIBUTE = "max";
-
     /*
      * Unhandled errors during runtime
      */
@@ -49,29 +47,12 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        String enumKey = ex.getFieldError().getDefaultMessage();
-        AppError appError;
-        Map<String, Object> attributes = null;
+        String message = ex.getFieldError().getDefaultMessage();
 
-        try {
-            appError = AppError.valueOf(enumKey);
-
-            var constraintViolation = ex.getBindingResult().getAllErrors()
-                    .getFirst().unwrap(ConstraintViolation.class);
-
-            attributes = constraintViolation.getConstraintDescriptor().getAttributes();
-        }
-        catch (IllegalArgumentException e) {
-            log.error(e.getMessage(), e);
-            appError = AppError.UNCATEGORIZED_EXCEPTION;
-        }
-
-        return ResponseEntity.status(appError.getHttpStatusCode())
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.builder()
                         .success(false)
-                        .message(Objects.nonNull(attributes)
-                                ? mapAttribute(appError.getMessage(), attributes)
-                                : appError.getMessage())
+                        .message(message)
                         .build());
     }
 
@@ -132,11 +113,4 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
-    private String mapAttribute(String message, Map<String, Object> attributes){
-        String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));
-        String maxValue = String.valueOf(attributes.get(MAX_ATTRIBUTE));
-
-        return message.replace("{" + MIN_ATTRIBUTE + "}", minValue)
-                .replace("{" + MAX_ATTRIBUTE + "}", maxValue);
-    }
 }

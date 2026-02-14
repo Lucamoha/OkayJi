@@ -9,6 +9,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CommentCreationRequest {
     String postId;
-    @NotBlank(message = "INVALID_INPUT_DATA")
+    @NotBlank(message = "Content must not be blank")
     String content;
 }

@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static org.apache.commons.lang3.math.NumberUtils.min;
 
 @Service
 @RequiredArgsConstructor
@@ -84,7 +83,20 @@ public class ChatServiceImpl implements ChatService {
                 chat,
                 chatRepository.unreadCount(currentUser.getId(), chat.getId()),
                 otherUser.getProfile().getAvatarUrl(),
-                otherUser.getProfile().getFullName());
+                otherUser.getProfile().getFullName()
+        );
+    }
+
+    @Override
+    @Transactional(rollbackOn = AppException.class)
+    public void leaveGroupChat(String userId, String groupId) {
+        ChatMember member = chatMemberRepository.findByChat_IdAndMember_Id(groupId, userId)
+                .orElseThrow(() -> new AppException(AppError.CHAT_NOT_FOUND));
+
+        if (member.getChat().getType() != ChatType.GROUP)
+            return;
+
+        chatMemberRepository.delete(member);
     }
 
     @Override

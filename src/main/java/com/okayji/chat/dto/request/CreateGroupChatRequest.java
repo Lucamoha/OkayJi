@@ -10,7 +10,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 public class CreateGroupChatRequest {
-    @NotBlank(message = "INVALID_INPUT_DATA")
+    @NotBlank(message = "Chat name must not be blank")
     String chatName;
     String chatAvatarUrl;
     List<String> memberIds;

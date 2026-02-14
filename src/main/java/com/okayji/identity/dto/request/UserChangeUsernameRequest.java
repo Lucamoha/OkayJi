@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 public class UserChangeUsernameRequest {
-    @Size(min = 3, max = 15, message = "USERNAME_INVALID")
+    @Size(min = 3, max = 15, message = "Username must be from 3 to 15 characters long")
     String newUsername;
     String password;
 }

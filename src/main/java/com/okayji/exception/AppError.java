@@ -20,9 +20,6 @@ public enum AppError {
     POST_NOT_FOUND("Post not found", HttpStatus.NOT_FOUND),
     COMMENT_NOT_FOUND("Comment not found", HttpStatus.NOT_FOUND),
 
-    USERNAME_INVALID("Username must be from {min} to {max} characters long", HttpStatus.BAD_REQUEST),
-    EMAIL_INVALID("Email invalid", HttpStatus.BAD_REQUEST),
-    PASSWORD_INVALID("Password must be at least {min} characters long", HttpStatus.BAD_REQUEST),
     WRONG_PASSWORD("Wrong password", HttpStatus.BAD_REQUEST),
     PASSWORD_NOT_MATCH("Password does not match", HttpStatus.BAD_REQUEST),
 

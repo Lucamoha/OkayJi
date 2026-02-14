@@ -74,9 +74,6 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Page<CommentResponse> getCommentsByPostId(String postId, int page, int size) {
-        postRepository.findById(postId)
-                .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
-
         Pageable pageable = PageRequest
                 .of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 

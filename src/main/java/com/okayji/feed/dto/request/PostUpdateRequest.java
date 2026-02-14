@@ -8,6 +8,6 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PostUpdateRequest {
-    @NotBlank(message = "INVALID_INPUT_DATA")
+    @NotBlank(message = "Content must not be blank")
     String content;
 }

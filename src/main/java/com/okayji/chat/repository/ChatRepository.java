@@ -20,13 +20,12 @@ public interface ChatRepository extends JpaRepository<Chat,String> {
     Page<Chat> findMyChatsOrderByLastMessageAt(@Param("userId") String userId, Pageable pageable);
 
     @Query("""
-    select count(m)
-    from Message m, ChatMember cm
-    where cm.chat.id = :chatId
-    and cm.member.id = :userId
-    and m.chat.id = :chatId
-    and m.seq > coalesce(cm.lastReadSeq, 0)
-    and m.sender.id <> :userId
+    select coalesce((c.lastMessageSeq - coalesce(cm.lastReadSeq, 0)), 0)
+    from Chat c
+    join ChatMember cm
+    on c.id = cm.chat.id
+    where cm.member.id = :userId
+    and c.id = :chatId
     """)
     long unreadCount(@Param("userId") String userId, @Param("chatId") String chatId);
 

@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface ChatService {
     void createDirectChat(String withUserId);
+    void leaveGroupChat(String userId, String groupId);
     Long unreadCount(String userId);
     ChatResponse createGroupChat(String userId, CreateGroupChatRequest createGroupChatRequest);
     Page<ChatResponse> getChats(String userId, int page, int size);
