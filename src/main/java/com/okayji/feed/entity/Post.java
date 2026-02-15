@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -26,6 +27,7 @@ public class Post {
     User user;
 
     @Column(nullable = false)
+    @Lob
     String content;
 
     @CreationTimestamp
@@ -37,6 +39,9 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Reaction> reactions;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    List<PostMedia> postMedia = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     PostStatus status = PostStatus.PUBLISHED;

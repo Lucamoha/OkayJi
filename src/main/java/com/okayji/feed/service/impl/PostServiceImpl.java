@@ -7,6 +7,7 @@ import com.okayji.feed.dto.request.PostCreationRequest;
 import com.okayji.feed.dto.request.PostUpdateRequest;
 import com.okayji.feed.dto.response.PostResponse;
 import com.okayji.feed.entity.Post;
+import com.okayji.feed.entity.PostMedia;
 import com.okayji.feed.repository.CommentRepository;
 import com.okayji.feed.repository.ReactionRepository;
 import com.okayji.identity.entity.User;
@@ -14,6 +15,8 @@ import com.okayji.feed.repository.PostRepository;
 import com.okayji.feed.service.PostService;
 import com.okayji.identity.repository.UserRepository;
 import com.okayji.mapper.PostMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,7 +25,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 
 @Service
 @AllArgsConstructor
@@ -33,6 +35,7 @@ public class PostServiceImpl implements PostService {
     private final ReactionRepository reactionRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final EntityManager entityManager;
 
     @Override
     public PostResponse getPostById(String id) {
@@ -52,12 +55,24 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(rollbackOn = AppException.class)
     public PostResponse createPost(PostCreationRequest postCreationRequest) {
         User user = getCurrentUser();
 
         Post post = postMapper.toPost(postCreationRequest, user);
-        postRepository.save(post);
-        return postMapper.toPostResponse(post, false, 0, 0);
+
+        postCreationRequest.getMedia().forEach(media -> {
+            PostMedia postMedia = PostMedia.builder()
+                    .post(post)
+                    .type(media.getType())
+                    .mediaUrl(media.getMediaUrl())
+                    .build();
+            post.getPostMedia().add(postMedia);
+        });
+        postRepository.saveAndFlush(post);
+        entityManager.refresh(post);
+        return postMapper.toPostResponse(post,
+                false, 0, 0);
     }
 
     @Override
