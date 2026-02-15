@@ -27,3 +27,11 @@ aws:
     secret-key: ${AWS_SECRET_ACCESS_KEY}
 presigned-url:
   expiration-minutes: 10
+multipart-url:
+  expiration-minutes: 60
+file:
+  max-size: # mb
+    image: 5
+    video: 50
+    multipart: 512
+    other: 50

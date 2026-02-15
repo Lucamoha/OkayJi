@@ -1,7 +1,7 @@
 package com.okayji.file.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -12,7 +12,7 @@ public class PresignedUrlRequest {
     @NotBlank(message = "Filename must not be blank")
     String fileName;
     @NotBlank(message = "File type must not be blank")
-    @Pattern(regexp = "image/(jpeg|png|gif|webp)",
-            message = "Only image files are allowed")
-    String fileType;
+    String fileType; // content-type
+    @NotNull(message = "File size (bytes) is required")
+    Long fileSize; // bytes
 }

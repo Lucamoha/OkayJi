@@ -88,6 +88,9 @@ public class MessageServiceImpl implements MessageService {
                 .findByChat_IdAndMember_Id(chatId, userId)
                 .orElseThrow(() -> new AppException(AppError.UNAUTHORIZED));
 
+        if (chatMember.getLastReadSeq() >= messageSeq)
+            return;
+
         chatMember.setLastReadSeq(min(chat.getLastMessageSeq(), messageSeq));
         chatMemberRepository.save(chatMember);
     }

@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 public class MessageRequest {
     @NotBlank(message = "Message type must not be blank")
-    MessageType type; // TEXT, IMAGE
+    MessageType type;
     @NotBlank(message = "Content must not be blank")
     String content;
 }
