@@ -6,7 +6,7 @@ import com.okayji.feed.dto.response.CommentResponse;
 import org.springframework.data.domain.Page;
 
 public interface CommentService {
-    CommentResponse createComment(CommentCreationRequest request);
+    CommentResponse createComment(String userId, CommentCreationRequest request);
     CommentResponse updateComment(String commentId, CommentUpdateRequest request);
     void deleteComment(String commentId);
     Page<CommentResponse> getCommentsByPostId(String postId, int page, int size);

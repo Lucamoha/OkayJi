@@ -8,11 +8,14 @@ import com.okayji.feed.dto.response.PostResponse;
 import com.okayji.feed.service.CommentService;
 import com.okayji.feed.service.PostService;
 import com.okayji.feed.service.ReactionService;
+import com.okayji.identity.entity.User;
+import com.okayji.utils.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,16 +30,18 @@ public class PostController {
 
     @GetMapping("/{postId}")
     @Operation(summary = "Get post by postId")
-    ApiResponse<PostResponse> getPost(@PathVariable String postId) {
+    ApiResponse<PostResponse> getPost(@PathVariable String postId,
+                                      @CurrentUser User currentUser) {
         return ApiResponse.<PostResponse>builder()
                 .success(true)
                 .message("Get post success")
-                .data(postService.getPostById(postId))
+                .data(postService.getPostById(currentUser.getId(), postId))
                 .build();
     }
 
     @PutMapping("/{postId}")
     @Operation(summary = "Update post by postId")
+    @PreAuthorize("@socialAuth.canAlterPost(authentication, #postId)")
     ApiResponse<PostResponse> updatePost(@PathVariable String postId,
                                          @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
         return ApiResponse.<PostResponse>builder()
@@ -48,10 +53,9 @@ public class PostController {
 
     @GetMapping("/{postId}/comments")
     @Operation(summary = "Get comments in post by postId")
-    ApiResponse<Page<CommentResponse>> getCommentsByPost(
-            @PathVariable String postId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+    ApiResponse<Page<CommentResponse>> getCommentsByPost(@PathVariable String postId,
+                                                         @RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "20") int size
     ) {
         return ApiResponse.<Page<CommentResponse>>builder()
                 .success(true)
@@ -61,16 +65,18 @@ public class PostController {
 
     @PostMapping
     @Operation(summary = "Create post")
-    ApiResponse<PostResponse> createPost(@Valid @RequestBody PostCreationRequest postCreationRequest) {
+    ApiResponse<PostResponse> createPost(@Valid @RequestBody PostCreationRequest postCreationRequest,
+                                         @CurrentUser User currentUser) {
         return ApiResponse.<PostResponse>builder()
                 .success(true)
                 .message("Create post success")
-                .data(postService.createPost(postCreationRequest))
+                .data(postService.createPost(currentUser.getId(), postCreationRequest))
                 .build();
     }
 
     @DeleteMapping("/{postId}")
     @Operation(summary = "Delete post by postId")
+    @PreAuthorize("@socialAuth.canAlterPost(authentication, #postId)")
     ApiResponse<?> deletePost(@PathVariable String postId) {
         postService.deletePostById(postId);
         return ApiResponse.builder()
@@ -80,8 +86,9 @@ public class PostController {
 
     @PostMapping("/{postId}/like")
     @Operation(summary = "React post by postId")
-    ApiResponse<?> reactPost(@PathVariable String postId) {
-        reactionService.like(postId);
+    ApiResponse<?> reactPost(@PathVariable String postId,
+                             @CurrentUser User currentUser) {
+        reactionService.like(currentUser.getId(), postId);
         return ApiResponse.builder()
                 .success(true)
                 .build();
@@ -89,8 +96,9 @@ public class PostController {
 
     @PostMapping("{postId}/unlike")
     @Operation(summary = "Unreact post by postId")
-    ApiResponse<?> unReactPost(@PathVariable String postId) {
-        reactionService.unlike(postId);
+    ApiResponse<?> unReactPost(@PathVariable String postId,
+                               @CurrentUser User currentUser) {
+        reactionService.unlike(currentUser.getId(), postId);
         return ApiResponse.builder()
                 .success(true)
                 .build();

@@ -28,6 +28,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendNotification(Notification notification) {
         notificationRepository.save(notification);
+
         messagingTemplate.convertAndSendToUser(
                 notification.getUser().getId(),
                 "/queue/notification",

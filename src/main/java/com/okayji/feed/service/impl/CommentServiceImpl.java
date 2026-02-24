@@ -11,16 +11,15 @@ import com.okayji.feed.repository.CommentRepository;
 import com.okayji.feed.repository.PostRepository;
 import com.okayji.feed.service.CommentService;
 import com.okayji.identity.entity.User;
+import com.okayji.identity.repository.UserRepository;
 import com.okayji.mapper.CommentMapper;
 import com.okayji.notification.service.NotificationService;
-import com.okayji.notification.service.impl.NotificationFactory;
+import com.okayji.notification.service.NotificationFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,20 +30,23 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
     private final PostRepository postRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Override
-    public CommentResponse createComment(CommentCreationRequest request) {
+    public CommentResponse createComment(String userId, CommentCreationRequest request) {
         String postId = request.getPostId();
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
-        User user = getCurrentUser();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         Comment comment = commentMapper.toComment(request);
         comment.setUser(user);
         comment.setPost(post);
         commentRepository.save(comment);
 
+        // if commenter not post owner -> ping noti to post owner
         if (!post.getUser().getId().equals(user.getId()))
             notificationService.sendNotification(NotificationFactory
                     .commentPost(
@@ -62,13 +64,9 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(AppError.COMMENT_NOT_FOUND));
 
-        User user = getCurrentUser();
-
-        if (!comment.getUser().getId().equals(user.getId()))
-            throw new AppException(AppError.UNAUTHORIZED);
-
         commentMapper.updateComment(comment, request);
         commentRepository.save(comment);
+
         return commentMapper.toCommentResponse(comment);
     }
 
@@ -76,11 +74,6 @@ public class CommentServiceImpl implements CommentService {
     public void deleteComment(String commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(AppError.COMMENT_NOT_FOUND));
-
-        User user = getCurrentUser();
-
-        if (!comment.getUser().getId().equals(user.getId()))
-            throw new AppException(AppError.UNAUTHORIZED);
 
         commentRepository.delete(comment);
     }
@@ -92,10 +85,5 @@ public class CommentServiceImpl implements CommentService {
 
         return commentRepository.findByPost_Id(postId, pageable)
                 .map(commentMapper::toCommentResponse);
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
     }
 }

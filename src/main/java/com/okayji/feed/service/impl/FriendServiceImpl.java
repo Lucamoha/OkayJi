@@ -15,13 +15,10 @@ import com.okayji.identity.repository.UserRepository;
 import com.okayji.mapper.FriendRequestMapper;
 import com.okayji.mapper.ProfileMapper;
 import com.okayji.notification.service.NotificationService;
-import com.okayji.notification.service.impl.NotificationFactory;
+import com.okayji.notification.service.NotificationFactory;
 import com.okayji.utils.PairUser;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,8 +38,9 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     @Transactional(rollbackOn = AppException.class)
-    public void createFriendRequest(String toUserIdOrUsername) {
-        User sender = getCurrentUser();
+    public void createFriendRequest(String fromUserId, String toUserIdOrUsername) {
+        User sender = userRepository.findById(fromUserId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
         User receiver = userRepository.findUserByIdOrUsername(toUserIdOrUsername, toUserIdOrUsername)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
@@ -65,6 +63,8 @@ public class FriendServiceImpl implements FriendService {
                     .build();
 
             friendRequestRepository.save(friendRequest);
+
+            // Ping noti to other user
             notificationService.sendNotification(NotificationFactory.friendRequest(friendRequest));
         }
         catch (IllegalArgumentException e) {
@@ -78,64 +78,42 @@ public class FriendServiceImpl implements FriendService {
         FriendRequest friendRequest = friendRequestRepository.findById(friendRequestId)
                 .orElseThrow(() -> new AppException(AppError.FRIEND_REQUEST_NOT_FOUND));
 
-        User currentUser = getCurrentUser();
         User sender = friendRequest.getSender();
         User receiver = friendRequest.getReceiver();
-
-        if (!receiver.getId().equals(currentUser.getId()))
-            throw new AppException(AppError.UNAUTHORIZED);
-
         var pair = PairUser.canonical(sender, receiver);
 
         friendRepository.save(Friend.builder()
                 .userLow(pair.getLow())
                 .userHigh(pair.getHigh())
                 .build());
+
+        // Delete request after accept
         friendRequestRepository.delete(friendRequest);
 
-        chatService.createDirectChat(sender.getId());
+        // Create chat between 2 user
+        chatService.createDirectChat(receiver.getId(), sender.getId());
 
+        // Ping noti to other user
         notificationService.sendNotification(NotificationFactory.newFriend(sender, receiver));
     }
 
     @Override
-    public void declineFriendRequest(String friendRequestId) {
-        FriendRequest friendRequest = friendRequestRepository.findById(friendRequestId)
-                .orElseThrow(() -> new AppException(AppError.FRIEND_REQUEST_NOT_FOUND));
-
-        User currentUser = getCurrentUser();
-        User receiver = friendRequest.getReceiver();
-
-        if (!receiver.getId().equals(currentUser.getId()))
-            throw new AppException(AppError.UNAUTHORIZED);
-
-        friendRequestRepository.delete(friendRequest);
+    public void deleteFriendRequest(String friendRequestId) {
+        friendRequestRepository.delete(
+                friendRequestRepository.findById(friendRequestId)
+                        .orElseThrow(() -> new AppException(AppError.FRIEND_REQUEST_NOT_FOUND))
+        );
     }
 
     @Override
-    public void cancelFriendRequest(String friendRequestId) {
-        FriendRequest friendRequest = friendRequestRepository.findById(friendRequestId)
-                .orElseThrow(() -> new AppException(AppError.FRIEND_REQUEST_NOT_FOUND));
-
-        User currentUser = getCurrentUser();
-        User sender = friendRequest.getSender();
-
-        if (!sender.getId().equals(currentUser.getId()))
-            throw new AppException(AppError.UNAUTHORIZED);
-
-        friendRequestRepository.delete(friendRequest);
-    }
-
-    @Override
-    public void unfriend(String anotherUserIdOrUsername) {
+    public void unfriend(String fromUserId, String anotherUserIdOrUsername) {
+        User fromUser = userRepository.findById(fromUserId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
         User anotherUser = userRepository.findUserByIdOrUsername(anotherUserIdOrUsername, anotherUserIdOrUsername)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
-        User currentUser = getCurrentUser();
-
-        var pair = PairUser.canonical(anotherUser, currentUser);
+        var pair = PairUser.canonical(anotherUser, fromUser);
         Friend friend = friendRepository.findByUserLowAndUserHigh(pair.getLow(), pair.getHigh());
-
         if (Objects.isNull(friend))
             throw new AppException(AppError.NOT_FRIEND);
 
@@ -143,8 +121,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    public List<ProfileBasicResponse> getFriends() {
-        String userId = getCurrentUser().getId();
+    public List<ProfileBasicResponse> getFriends(String userId) {
         return friendRepository
                 .findByUserLow_IdOrUserHigh_Id(userId, userId).stream()
                 .map(friend -> profileMapper.toProfileBasicResponse(
@@ -155,33 +132,26 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    public List<FriendReqResponse> getFriendRequestSent() {
-        String userId = getCurrentUser().getId();
-        return friendRequestRepository.findBySender_Id(userId).stream()
-                .map(friendRequest -> friendRequestMapper
-                        .toFriendReqResponse(friendRequest,
-                                profileMapper.toProfileBasicResponse(
-                                        friendRequest.getSender().getProfile()),
-                                profileMapper.toProfileBasicResponse(
-                                        friendRequest.getReceiver().getProfile())))
+    public List<FriendReqResponse> getFriendRequestSent(String userId) {
+        return friendRequestRepository
+                .findBySender_Id(userId).stream()
+                .map(friendRequest -> friendRequestMapper.toFriendReqResponse(
+                        friendRequest,
+                        profileMapper.toProfileBasicResponse(friendRequest.getSender().getProfile()),
+                        profileMapper.toProfileBasicResponse(friendRequest.getReceiver().getProfile())
+                ))
                 .toList();
     }
 
     @Override
-    public List<FriendReqResponse> getFriendRequestReceived() {
-        String userId = getCurrentUser().getId();
-        return friendRequestRepository.findByReceiver_Id(userId).stream()
-                .map(friendRequest -> friendRequestMapper
-                        .toFriendReqResponse(friendRequest,
-                                profileMapper.toProfileBasicResponse(
-                                        friendRequest.getSender().getProfile()),
-                                profileMapper.toProfileBasicResponse(
-                                        friendRequest.getReceiver().getProfile())))
+    public List<FriendReqResponse> getFriendRequestReceived(String userId) {
+        return friendRequestRepository
+                .findByReceiver_Id(userId).stream()
+                .map(friendRequest -> friendRequestMapper.toFriendReqResponse(
+                        friendRequest,
+                        profileMapper.toProfileBasicResponse(friendRequest.getSender().getProfile()),
+                        profileMapper.toProfileBasicResponse(friendRequest.getReceiver().getProfile())
+                ))
                 .toList();
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
     }
 }

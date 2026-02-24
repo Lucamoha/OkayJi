@@ -1,6 +1,5 @@
 package com.okayji.identity.service.impl;
 
-import com.okayji.enums.Gender;
 import com.okayji.identity.dto.request.UserChangePasswordRequest;
 import com.okayji.identity.dto.request.UserChangeUsernameRequest;
 import com.okayji.identity.dto.request.UserCreationRequest;
@@ -18,8 +17,6 @@ import com.okayji.identity.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +39,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public UserResponse create(UserCreationRequest userCreationRequest) {
         log.info("User creation request: username={}", userCreationRequest.getUsername());
 
@@ -61,13 +58,14 @@ public class UserServiceImpl implements UserService {
                 .build();
         user.setProfile(profile);
 
-        user = userRepository.saveAndFlush(user);
+        user = userRepository.save(user);
         return userMapper.toUserResponse(user);
     }
 
     @Override
-    public void changePassword(UserChangePasswordRequest request) {
-        User user = getCurrentUser();
+    public void changePassword(String userId, UserChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
         log.info("User change password request: username={}", user.getUsername());
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword()))
@@ -77,13 +75,14 @@ public class UserServiceImpl implements UserService {
             throw new AppException(AppError.PASSWORD_NOT_MATCH);
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.saveAndFlush(user);
+        userRepository.save(user);
     }
 
     @Override
-    @Transactional
-    public void changeUsername(UserChangeUsernameRequest request) {
-        User user = getCurrentUser();
+    @Transactional(rollbackOn = Exception.class)
+    public void changeUsername(String userId, UserChangeUsernameRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
         log.info("User change username request: oldUsername={}; newUsername={}",
                 user.getUsername(), request.getNewUsername());
 
@@ -91,16 +90,11 @@ public class UserServiceImpl implements UserService {
             throw new AppException(AppError.WRONG_PASSWORD);
 
         user.setUsername(request.getNewUsername());
-        userRepository.saveAndFlush(user);
+        userRepository.save(user);
     }
 
     @Override
     public void delete(String userId) {
 
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
     }
 }

@@ -10,13 +10,13 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface ChatService {
-    void createDirectChat(String withUserId);
+    void createDirectChat(String thisUserId, String withUserId);
     void leaveGroupChat(String userId, String groupId);
     Long unreadCount(String userId);
     ChatResponse createGroupChat(String userId, CreateGroupChatRequest createGroupChatRequest);
-    ChatResponse updateGroupChat(String userId, String groupId, UpdateGroupChatRequest updateGroupChatRequest);
+    ChatResponse updateGroupChat(String groupId, UpdateGroupChatRequest updateGroupChatRequest);
     Page<ChatResponse> getChats(String userId, int page, int size);
     ChatResponse getChat(String userId, String chatId);
-    List<ChatMemberResponse> getMembers(String userId, String chatId);
-    Page<MessageResponse> getMessages(String userId, String chatId, int page, int size);
+    List<ChatMemberResponse> getMembers(String chatId);
+    Page<MessageResponse> getMessages(String chatId, int page, int size);
 }

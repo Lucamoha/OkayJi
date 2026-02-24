@@ -6,9 +6,9 @@ import com.okayji.feed.dto.response.PostResponse;
 import org.springframework.data.domain.Page;
 
 public interface PostService {
-    PostResponse getPostById(String id);
-    PostResponse createPost(PostCreationRequest postCreationRequest);
+    PostResponse getPostById(String viewerId, String id);
+    PostResponse createPost(String userId, PostCreationRequest postCreationRequest);
     PostResponse updatePost(String postId, PostUpdateRequest postUpdateRequest);
     void deletePostById(String id);
-    Page<PostResponse> getPostsByUser(String userIdOrUsername, int page, int size);
+    Page<PostResponse> getPostsByUser(String viewerId, String userIdOrUsername, int page, int size);
 }

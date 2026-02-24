@@ -8,7 +8,7 @@ import com.okayji.identity.dto.response.UserResponse;
 public interface UserService {
     UserResponse findById(String id);
     UserResponse create(UserCreationRequest userCreationRequest);
-    void changePassword(UserChangePasswordRequest request);
-    void changeUsername(UserChangeUsernameRequest request);
+    void changePassword(String userId, UserChangePasswordRequest request);
+    void changeUsername(String userId, UserChangeUsernameRequest request);
     void delete(String userId);
 }

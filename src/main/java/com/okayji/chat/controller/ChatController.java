@@ -8,13 +8,13 @@ import com.okayji.chat.dto.response.MessageResponse;
 import com.okayji.chat.service.ChatService;
 import com.okayji.common.ApiResponse;
 import com.okayji.identity.entity.User;
+import com.okayji.utils.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,65 +29,73 @@ public class ChatController {
 
     @GetMapping
     @Operation(summary = "Get user chats list")
-    ApiResponse<Page<ChatResponse>> getMyChats(@RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+    ApiResponse<Page<ChatResponse>> getMyChats(@RequestParam(defaultValue = "0") int page, 
+                                               @RequestParam(defaultValue = "20") int size,
+                                               @CurrentUser User currentUser) {
         return ApiResponse.<Page<ChatResponse>>builder()
                 .success(true)
-                .data(chatService.getChats(getCurrentUser().getId(), page, size))
+                .data(chatService.getChats(currentUser.getId(), page, size))
                 .build();
     }
 
     @GetMapping("/{chatId}")
     @Operation(summary = "Get chat")
-    ApiResponse<ChatResponse> getChat(@PathVariable String chatId) {
+    @PreAuthorize("@socialAuth.canAccessChat(authentication, #chatId)")
+    ApiResponse<ChatResponse> getChat(@PathVariable String chatId,
+                                      @CurrentUser User currentUser) {
         return ApiResponse.<ChatResponse>builder()
                 .success(true)
-                .data(chatService.getChat(getCurrentUser().getId(), chatId))
+                .data(chatService.getChat(currentUser.getId(), chatId))
                 .build();
     }
 
     @GetMapping("/unread-count")
     @Operation(summary = "Get number of unread chats")
-    ApiResponse<Long> getUnreadCount() {
+    ApiResponse<Long> getUnreadCount(@CurrentUser User currentUser) {
         return ApiResponse.<Long>builder()
                 .success(true)
-                .data(chatService.unreadCount(getCurrentUser().getId()))
+                .data(chatService.unreadCount(currentUser.getId()))
                 .build();
     }
 
     @GetMapping("/{chatId}/members")
     @Operation(summary = "Get members in chat")
+    @PreAuthorize("@socialAuth.canAccessChat(authentication, #chatId)")
     ApiResponse<List<ChatMemberResponse>> getMembers(@PathVariable String chatId) {
         return ApiResponse.<List<ChatMemberResponse>>builder()
                 .success(true)
-                .data(chatService.getMembers(getCurrentUser().getId(), chatId))
+                .data(chatService.getMembers(chatId))
                 .build();
     }
 
     @GetMapping("/{chatId}/messages")
     @Operation(summary = "Get messages in chat")
-    ApiResponse<Page<MessageResponse>> getMessages(@PathVariable String chatId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+    @PreAuthorize("@socialAuth.canAccessChat(authentication, #chatId)")
+    ApiResponse<Page<MessageResponse>> getMessages(@PathVariable String chatId, 
+                                                   @RequestParam(defaultValue = "0") int page, 
+                                                   @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.<Page<MessageResponse>>builder()
                 .success(true)
-                .data(chatService.getMessages(getCurrentUser().getId(), chatId, page, size))
+                .data(chatService.getMessages(chatId, page, size))
                 .build();
     }
 
     @PostMapping("/group")
     @Operation(summary = "Create group chat with others")
-    ApiResponse<ChatResponse> createGroupChat(@Valid @RequestBody CreateGroupChatRequest request) {
+    ApiResponse<ChatResponse> createGroupChat(@Valid @RequestBody CreateGroupChatRequest request,
+                                              @CurrentUser User currentUser) {
         return ApiResponse.<ChatResponse>builder()
                 .success(true)
-                .data(chatService.createGroupChat(getCurrentUser().getId(), request))
+                .data(chatService.createGroupChat(currentUser.getId(), request))
                 .build();
     }
 
     @PostMapping("/group/{groupId}/leave")
     @Operation(summary = "Leave group chat")
-    ApiResponse<?> leaveGroupChat(@PathVariable String groupId) {
-        chatService.leaveGroupChat(getCurrentUser().getId(), groupId);
+    @PreAuthorize("@socialAuth.canAccessChat(authentication, #groupId)")
+    ApiResponse<?> leaveGroupChat(@PathVariable String groupId,
+                                  @CurrentUser User currentUser) {
+        chatService.leaveGroupChat(currentUser.getId(), groupId);
         return ApiResponse.builder()
                 .success(true)
                 .build();
@@ -95,17 +103,12 @@ public class ChatController {
 
     @PutMapping("/group/{groupId}")
     @Operation(summary = "Update group chat information")
-    ApiResponse<ChatResponse> updateGroupChat(
-            @PathVariable String groupId,
-            @Valid @RequestBody UpdateGroupChatRequest request) {
+    @PreAuthorize("@socialAuth.canAccessChat(authentication, #groupId)")
+    ApiResponse<ChatResponse> updateGroupChat(@PathVariable String groupId,
+                                              @Valid @RequestBody UpdateGroupChatRequest request) {
         return ApiResponse.<ChatResponse>builder()
                 .success(true)
-                .data(chatService.updateGroupChat(getCurrentUser().getId(), groupId, request))
+                .data(chatService.updateGroupChat(groupId, request))
                 .build();
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
     }
 }

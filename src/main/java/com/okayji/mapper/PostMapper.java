@@ -20,6 +20,13 @@ public interface PostMapper {
     @Mapping(source = "post.postMedia", target = "media")
     PostResponse toPostResponse(Post post, boolean liked, long likesCount,  long commentsCount);
 
+    @Mapping(source = "post.user.id", target = "userId")
+    @Mapping(source = "post.user.profile.fullName", target = "userFullName")
+    @Mapping(source = "post.user.profile.avatarUrl", target = "userAvatarUrl")
+    @Mapping(source = "post.user.username", target = "username")
+    @Mapping(source = "post.postMedia", target = "media")
+    PostResponse toPostResponse(Post post);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(source = "user.id", target = "user.id")

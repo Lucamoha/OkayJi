@@ -16,8 +16,6 @@ import com.okayji.mapper.FriendRequestMapper;
 import com.okayji.mapper.ProfileMapper;
 import com.okayji.utils.PairUser;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -34,53 +32,46 @@ public class ProfileServiceImpl implements ProfileService {
     private final FriendRepository friendRepository;
 
     @Override
-    public ProfileResponse getUserProfile(String userIdOrUsername) {
-        User user = userRepository
-                .findUserByIdOrUsername(userIdOrUsername, userIdOrUsername)
+    public ProfileResponse getUserProfile(String viewerId, String userIdOrUsername) {
+        User user = userRepository.findUserByIdOrUsername(userIdOrUsername, userIdOrUsername)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
-
         Profile profile = user.getProfile();
         ProfileResponse profileResponse = profileMapper.toProfileResponse(profile);
+        if (user.getId().equals(viewerId))
+            return profileResponse;
 
-        User currentUser = getCurrentUser();
-        if (!user.getId().equals(currentUser.getId())) {
-            var pair = PairUser.canonical(user, currentUser);
-            profileResponse.setFriend(friendRepository
-                    .existsByUserLow_IdAndUserHigh_Id(pair.getLow().getId(), pair.getHigh().getId()));
+        User viewer = userRepository.findById(viewerId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
-            FriendRequest friendRequest = friendRequestRepository.findBySenderAndReceiver(user, currentUser);
-            if (Objects.isNull(friendRequest))
-                friendRequest = friendRequestRepository.findBySenderAndReceiver(currentUser, user);
-
-            profileResponse.setFriendRequest(Objects.nonNull(friendRequest)
-                    ? friendRequestMapper
-                    .toFriendReqResponse(friendRequest,
-                            profileMapper.toProfileBasicResponse(friendRequest.getSender().getProfile()),
-                            profileMapper.toProfileBasicResponse(friendRequest.getReceiver().getProfile()))
-                    : null);
+        // if friend
+        var pair = PairUser.canonical(user, viewer);
+        if (friendRepository.existsByUserLow_IdAndUserHigh_Id(pair.getLow().getId(), pair.getHigh().getId())) {
+            profileResponse.setFriend(true);
+            return profileResponse;
         }
 
+        // if friend request exist
+        FriendRequest friendRequest = friendRequestRepository.findBySenderAndReceiver(user, viewer);
+        profileResponse.setFriendRequest(
+                Objects.nonNull(friendRequest)
+                ? friendRequestMapper.toFriendReqResponse(
+                        friendRequest,
+                        profileMapper.toProfileBasicResponse(friendRequest.getSender().getProfile()),
+                        profileMapper.toProfileBasicResponse(friendRequest.getReceiver().getProfile()))
+                : null
+        );
         return profileResponse;
     }
 
-    @Override
-    public ProfileResponse getMyProfile() {
-        return this.getUserProfile(getCurrentUser().getId());
-    }
 
     @Override
-    public ProfileResponse updateUserProfile(ProfileUpdateRequest profileUpdateRequest) {
-        User user = getCurrentUser();
+    public ProfileResponse updateUserProfile(String userId, ProfileUpdateRequest profileUpdateRequest) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         Profile profile = user.getProfile();
         profileMapper.updateProfile(profile, profileUpdateRequest);
         profileRepository.save(profile);
-
         return profileMapper.toProfileResponse(profile);
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
     }
 }

@@ -3,7 +3,9 @@ package com.okayji.identity.controller;
 import com.okayji.identity.dto.request.UserChangePasswordRequest;
 import com.okayji.common.ApiResponse;
 import com.okayji.identity.dto.request.UserChangeUsernameRequest;
+import com.okayji.identity.entity.User;
 import com.okayji.identity.service.UserService;
+import com.okayji.utils.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -19,8 +21,9 @@ public class UserController {
 
     @PostMapping("/change-password")
     @Operation(summary = "Change users password")
-    ApiResponse<?> changePassword(@RequestBody @Valid UserChangePasswordRequest request) {
-        userService.changePassword(request);
+    ApiResponse<?> changePassword(@RequestBody @Valid UserChangePasswordRequest request,
+                                  @CurrentUser User currentUser) {
+        userService.changePassword(currentUser.getId(), request);
 
         return ApiResponse.builder()
                 .success(true)
@@ -30,8 +33,9 @@ public class UserController {
 
     @PostMapping("/change-username")
     @Operation(summary = "Change users username")
-    ApiResponse<?> changeUsername(@RequestBody @Valid UserChangeUsernameRequest request) {
-        userService.changeUsername(request);
+    ApiResponse<?> changeUsername(@RequestBody @Valid UserChangeUsernameRequest request,
+                                  @CurrentUser User currentUser) {
+        userService.changeUsername(currentUser.getId(), request);
 
         return ApiResponse.builder()
                 .success(true)

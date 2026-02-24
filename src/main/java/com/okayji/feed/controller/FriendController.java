@@ -4,10 +4,12 @@ import com.okayji.common.ApiResponse;
 import com.okayji.feed.dto.response.FriendReqResponse;
 import com.okayji.feed.service.FriendService;
 import com.okayji.identity.dto.response.ProfileBasicResponse;
-import com.okayji.identity.dto.response.ProfileResponse;
+import com.okayji.identity.entity.User;
+import com.okayji.utils.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,35 +24,36 @@ public class FriendController {
 
     @GetMapping
     @Operation(summary = "Get friend list")
-    public ApiResponse<List<ProfileBasicResponse>> getFriends() {
+    public ApiResponse<List<ProfileBasicResponse>> getFriends(@CurrentUser User currentUser) {
         return ApiResponse.<List<ProfileBasicResponse>>builder()
                 .success(true)
-                .data(friendService.getFriends())
+                .data(friendService.getFriends(currentUser.getId()))
                 .build();
     }
 
     @GetMapping("/received")
     @Operation(summary = "Get friend requests received")
-    public ApiResponse<List<FriendReqResponse>> getFriendRequestsReceived() {
+    public ApiResponse<List<FriendReqResponse>> getFriendRequestsReceived(@CurrentUser User currentUser) {
         return ApiResponse.<List<FriendReqResponse>>builder()
                 .success(true)
-                .data(friendService.getFriendRequestReceived())
+                .data(friendService.getFriendRequestReceived(currentUser.getId()))
                 .build();
     }
 
     @GetMapping("/sent")
     @Operation(summary = "Get friend requests sent")
-    public ApiResponse<List<FriendReqResponse>> getFriendRequestsSent() {
+    public ApiResponse<List<FriendReqResponse>> getFriendRequestsSent(@CurrentUser User currentUser) {
         return ApiResponse.<List<FriendReqResponse>>builder()
                 .success(true)
-                .data(friendService.getFriendRequestSent())
+                .data(friendService.getFriendRequestSent(currentUser.getId()))
                 .build();
     }
 
     @PostMapping("/request/{toUserIdOrUsername}")
     @Operation(summary = "Send friend request to another")
-    public ApiResponse<?> sendFriendRequest(@PathVariable String toUserIdOrUsername){
-        friendService.createFriendRequest(toUserIdOrUsername);
+    public ApiResponse<?> sendFriendRequest(@PathVariable String toUserIdOrUsername,
+                                            @CurrentUser User currentUser){
+        friendService.createFriendRequest(currentUser.getId(), toUserIdOrUsername);
         return ApiResponse.builder()
                 .success(true)
                 .message("Friend request sent")
@@ -59,6 +62,7 @@ public class FriendController {
 
     @PostMapping("/accept/{friendRequestId}")
     @Operation(summary = "Accept friend request")
+    @PreAuthorize("@socialAuth.canAlterFriendRequest(authentication, #friendRequestId, 'ACCEPT')")
     public ApiResponse<?> acceptFriendRequest(@PathVariable String friendRequestId){
         friendService.acceptFriendRequest(friendRequestId);
         return ApiResponse.builder()
@@ -69,8 +73,9 @@ public class FriendController {
 
     @PostMapping("/decline/{friendRequestId}")
     @Operation(summary = "Decline friend request")
+    @PreAuthorize("@socialAuth.canAlterFriendRequest(authentication, #friendRequestId, 'DECLINE')")
     public ApiResponse<?> declineFriendRequest(@PathVariable String friendRequestId){
-        friendService.declineFriendRequest(friendRequestId);
+        friendService.deleteFriendRequest(friendRequestId);
         return ApiResponse.builder()
                 .success(true)
                 .message("Friend request declined")
@@ -79,8 +84,9 @@ public class FriendController {
 
     @PostMapping("/cancel/{friendRequestId}")
     @Operation(summary = "Cancel friend request")
+    @PreAuthorize("@socialAuth.canAlterFriendRequest(authentication, #friendRequestId, 'CANCEL')")
     public ApiResponse<?> cancelFriendRequest(@PathVariable String friendRequestId){
-        friendService.cancelFriendRequest(friendRequestId);
+        friendService.deleteFriendRequest(friendRequestId);
         return ApiResponse.builder()
                 .success(true)
                 .message("Friend request cancelled")
@@ -89,8 +95,9 @@ public class FriendController {
 
     @PostMapping("/unfriend/{anotherUserIdOrUsername}")
     @Operation(summary = "Unfriend another by userId or username")
-    public ApiResponse<?> unfriend(@PathVariable String anotherUserIdOrUsername){
-        friendService.unfriend(anotherUserIdOrUsername);
+    public ApiResponse<?> unfriend(@PathVariable String anotherUserIdOrUsername,
+                                   @CurrentUser User currentUser){
+        friendService.unfriend(currentUser.getId(), anotherUserIdOrUsername);
         return ApiResponse.builder()
                 .success(true)
                 .message("Unfriend successfully")

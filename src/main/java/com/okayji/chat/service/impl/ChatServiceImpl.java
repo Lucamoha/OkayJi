@@ -27,14 +27,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 
 @Service
 @RequiredArgsConstructor
@@ -49,10 +46,11 @@ public class ChatServiceImpl implements ChatService {
     private final MessageMapper messageMapper;
 
     @Override
-    @Transactional(rollbackOn = AppException.class)
-    public void createDirectChat(String withUserId) {
-        User currentUser = getCurrentUser();
-        User otherUser =  userRepository.findById(withUserId)
+    @Transactional(rollbackOn = Exception.class)
+    public void createDirectChat(String thisUserId, String withUserId) {
+        User currentUser = userRepository.findById(thisUserId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+        User otherUser = userRepository.findById(withUserId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         PairUser pairUser = PairUser.canonical(currentUser, otherUser);
@@ -90,7 +88,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    @Transactional(rollbackOn = AppException.class)
+    @Transactional(rollbackOn = Exception.class)
     public void leaveGroupChat(String userId, String groupId) {
         ChatMember member = chatMemberRepository.findByChat_IdAndMember_Id(groupId, userId)
                 .orElseThrow(() -> new AppException(AppError.CHAT_NOT_FOUND));
@@ -107,7 +105,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    @Transactional(rollbackOn = AppException.class)
+    @Transactional(rollbackOn = Exception.class)
     public ChatResponse createGroupChat(String userId, CreateGroupChatRequest createGroupChatRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
@@ -144,12 +142,8 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public ChatResponse updateGroupChat(String userId,
-                                        String groupId,
+    public ChatResponse updateGroupChat(String groupId,
                                         UpdateGroupChatRequest updateGroupChatRequest) {
-        if (!chatMemberRepository.existsByChat_IdAndMember_Id(groupId, userId))
-            throw new AppException(AppError.UNAUTHORIZED);
-
         Chat chat = chatRepository.findById(groupId)
                 .orElseThrow(() -> new AppException(AppError.CHAT_NOT_FOUND));
 
@@ -157,14 +151,14 @@ public class ChatServiceImpl implements ChatService {
             throw new AppException(AppError.INVALID_INPUT_DATA);
 
         chat.setChatName(updateGroupChatRequest.getChatName());
-        if (updateGroupChatRequest.getChatAvatarUrl() != null) {
+        if (updateGroupChatRequest.getChatAvatarUrl() != null)
             chat.setChatAvatarUrl(updateGroupChatRequest.getChatAvatarUrl());
-        }
 
         chatRepository.save(chat);
         return chatMapper.toChatResponse(
                 chat,
-                chatRepository.unreadCount(userId, groupId));
+                0
+        );
     }
 
     @Override
@@ -184,27 +178,18 @@ public class ChatServiceImpl implements ChatService {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new AppException(AppError.CHAT_NOT_FOUND));
 
-        if (!chatMemberRepository.existsByChat_IdAndMember_Id(chatId, user.getId()))
-            throw new AppException(AppError.UNAUTHORIZED);
-
         return getChatResponse(chat, user);
     }
 
     @Override
-    public List<ChatMemberResponse> getMembers(String userId, String chatId) {
-        if (!chatMemberRepository.existsByChat_IdAndMember_Id(chatId, userId))
-            throw new AppException(AppError.UNAUTHORIZED);
-
+    public List<ChatMemberResponse> getMembers(String chatId) {
         return chatMemberRepository.findChatMembersByChat_Id(chatId).stream()
                 .map(chatMapper::toChatMemberResponse)
                 .toList();
     }
 
     @Override
-    public Page<MessageResponse> getMessages(String userId, String chatId, int page, int size) {
-        if (!chatMemberRepository.existsByChat_IdAndMember_Id(chatId, userId))
-            throw new AppException(AppError.UNAUTHORIZED);
-
+    public Page<MessageResponse> getMessages(String chatId, int page, int size) {
         Sort sort = Sort.by(Sort.Direction.DESC, "seq");
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -218,6 +203,7 @@ public class ChatServiceImpl implements ChatService {
                             .getOtherInDirectChat(chat.getId(), currentUser.getId()))
                     .getMember()
                     .getProfile();
+
             return chatMapper.toChatResponse(
                     chat,
                     chatRepository.unreadCount(currentUser.getId(), chat.getId()),
@@ -229,10 +215,5 @@ public class ChatServiceImpl implements ChatService {
                 chat,
                 chatRepository.unreadCount(currentUser.getId(), chat.getId())
         );
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
     }
 }

@@ -1,4 +1,4 @@
-package com.okayji.notification.service.impl;
+package com.okayji.notification.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -5,10 +5,13 @@ import com.okayji.feed.dto.request.CommentCreationRequest;
 import com.okayji.feed.dto.request.CommentUpdateRequest;
 import com.okayji.feed.dto.response.CommentResponse;
 import com.okayji.feed.service.CommentService;
+import com.okayji.identity.entity.User;
+import com.okayji.utils.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,15 +24,17 @@ public class CommentController {
 
     @PostMapping
     @Operation(summary = "Create comment")
-    ApiResponse<CommentResponse> createComment(@Valid @RequestBody CommentCreationRequest request) {
+    ApiResponse<CommentResponse> createComment(@Valid @RequestBody CommentCreationRequest request,
+                                               @CurrentUser User currentUser) {
         return ApiResponse.<CommentResponse>builder()
                 .success(true)
-                .data(commentService.createComment(request))
+                .data(commentService.createComment(currentUser.getId(), request))
                 .build();
     }
 
     @PutMapping("/{commentId}")
     @Operation(summary = "Update comment by commentId")
+    @PreAuthorize("@socialAuth.canAlterComment(authentication, #commentId)")
     ApiResponse<CommentResponse> updateComment(@PathVariable String commentId,
                                                @Valid @RequestBody CommentUpdateRequest request) {
         return ApiResponse.<CommentResponse>builder()
@@ -40,6 +45,7 @@ public class CommentController {
 
     @DeleteMapping("/{commentId}")
     @Operation(summary = "Delete comment by commentId")
+    @PreAuthorize("@socialAuth.canAlterComment(authentication, #commentId)")
     ApiResponse<?> deleteComment(@PathVariable String commentId) {
         commentService.deleteComment(commentId);
         return ApiResponse.builder()

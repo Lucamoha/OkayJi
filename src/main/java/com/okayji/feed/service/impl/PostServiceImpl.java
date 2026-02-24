@@ -1,6 +1,5 @@
 package com.okayji.feed.service.impl;
 
-import com.okayji.enums.PostStatus;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
 import com.okayji.feed.dto.request.PostCreationRequest;
@@ -22,8 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -38,26 +35,21 @@ public class PostServiceImpl implements PostService {
     private final EntityManager entityManager;
 
     @Override
-    public PostResponse getPostById(String id) {
-        User user = getCurrentUser();
-
+    public PostResponse getPostById(String viewerId, String id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
-        if (post.getStatus() != PostStatus.PUBLISHED
-                && !post.getUser().getId().equals(user.getId()))
-            throw new AppException(AppError.POST_NOT_FOUND);
-
         return postMapper.toPostResponse(post,
-                reactionRepository.existsByPostIdAndUserId(post.getId(), user.getId()),
+                reactionRepository.existsByPostIdAndUserId(post.getId(), viewerId),
                 reactionRepository.countByPost_Id(post.getId()),
                 commentRepository.countByPost_Id(post.getId()));
     }
 
     @Override
     @Transactional(rollbackOn = AppException.class)
-    public PostResponse createPost(PostCreationRequest postCreationRequest) {
-        User user = getCurrentUser();
+    public PostResponse createPost(String userId, PostCreationRequest postCreationRequest) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         Post post = postMapper.toPost(postCreationRequest, user);
 
@@ -69,10 +61,11 @@ public class PostServiceImpl implements PostService {
                     .build();
             post.getPostMedia().add(postMedia);
         });
+
         postRepository.saveAndFlush(post);
         entityManager.refresh(post);
-        return postMapper.toPostResponse(post,
-                false, 0, 0);
+
+        return postMapper.toPostResponse(post);
     }
 
     @Override
@@ -80,18 +73,10 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
-        User user = getCurrentUser();
-
-        if (!user.getId().equals(post.getUser().getId()))
-            throw new AppException(AppError.UNAUTHORIZED);
-
         postMapper.updatePost(post, postUpdateRequest);
         postRepository.save(post);
 
-        return postMapper.toPostResponse(post,
-                reactionRepository.existsByPostIdAndUserId(post.getId(), user.getId()),
-                reactionRepository.countByPost_Id(post.getId()),
-                commentRepository.countByPost_Id(post.getId()));
+        return postMapper.toPostResponse(post);
     }
 
     @Override
@@ -99,34 +84,23 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
-        User user = getCurrentUser();
-
-        if (!user.getId().equals(post.getUser().getId()))
-            throw new AppException(AppError.UNAUTHORIZED);
-
         postRepository.delete(post);
     }
 
     @Override
-    public Page<PostResponse> getPostsByUser(String userIdOrUsername, int page, int size) {
+    public Page<PostResponse> getPostsByUser(String viewerId, String userIdOrUsername, int page, int size) {
         userRepository.findUserByIdOrUsername(userIdOrUsername, userIdOrUsername)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
-
-        User user = getCurrentUser();
 
         Pageable pageable = PageRequest
                 .of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        return postRepository.findByUser_Id(userIdOrUsername, pageable)
-                .map(post -> postMapper
-                        .toPostResponse(post,
-                                reactionRepository.existsByPostIdAndUserId(post.getId(), user.getId()),
-                                reactionRepository.countByPost_Id(post.getId()),
-                                commentRepository.countByPost_Id(post.getId())));
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
+        return postRepository
+                .findByUser_Id(userIdOrUsername, pageable)
+                .map(post -> postMapper.toPostResponse(post,
+                        reactionRepository.existsByPostIdAndUserId(post.getId(), viewerId),
+                        reactionRepository.countByPost_Id(post.getId()),
+                        commentRepository.countByPost_Id(post.getId()))
+                );
     }
 }

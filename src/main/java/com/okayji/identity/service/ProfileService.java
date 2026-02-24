@@ -4,7 +4,6 @@ import com.okayji.identity.dto.request.ProfileUpdateRequest;
 import com.okayji.identity.dto.response.ProfileResponse;
 
 public interface ProfileService {
-    ProfileResponse getUserProfile(String userIdOrUsername);
-    ProfileResponse getMyProfile();
-    ProfileResponse updateUserProfile(ProfileUpdateRequest profileUpdateRequest);
+    ProfileResponse getUserProfile(String viewerId, String userIdOrUsername);
+    ProfileResponse updateUserProfile(String userId, ProfileUpdateRequest profileUpdateRequest);
 }
