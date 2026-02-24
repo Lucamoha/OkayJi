@@ -34,6 +34,8 @@ public enum AppError {
 
     MAX_FILE_SIZE("File size exceeds limit", HttpStatus.BAD_REQUEST),
     FILE_NOT_ALLOW("File type not allow", HttpStatus.BAD_REQUEST),
+
+    NOTI_NOT_FOUND("Notification not found", HttpStatus.NOT_FOUND),
     ;
 
     private final String message;

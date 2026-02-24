@@ -67,6 +67,7 @@ public class ChatServiceImpl implements ChatService {
             chat = Chat.builder()
                     .type(ChatType.DIRECT)
                     .createdBy(currentUser)
+                    .directKey(directKey)
                     .build();
             chatRepository.saveAndFlush(chat);
 

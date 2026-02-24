@@ -8,6 +8,8 @@ import com.okayji.feed.repository.PostRepository;
 import com.okayji.feed.repository.ReactionRepository;
 import com.okayji.feed.service.ReactionService;
 import com.okayji.identity.entity.User;
+import com.okayji.notification.service.NotificationService;
+import com.okayji.notification.service.impl.NotificationFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,6 +23,7 @@ public class ReactionServiceImpl implements ReactionService {
 
     private final ReactionRepository reactionRepository;
     private final PostRepository postRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -39,6 +42,7 @@ public class ReactionServiceImpl implements ReactionService {
 
         try {
             reactionRepository.saveAndFlush(reaction);
+            notificationService.sendNotification(NotificationFactory.likePost(post, user));
         }
         catch (DataIntegrityViolationException ignored) {}
     }

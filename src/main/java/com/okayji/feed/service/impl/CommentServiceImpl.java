@@ -12,6 +12,8 @@ import com.okayji.feed.repository.PostRepository;
 import com.okayji.feed.service.CommentService;
 import com.okayji.identity.entity.User;
 import com.okayji.mapper.CommentMapper;
+import com.okayji.notification.service.NotificationService;
+import com.okayji.notification.service.impl.NotificationFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +30,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final PostRepository postRepository;
+    private final NotificationService notificationService;
 
     @Override
     public CommentResponse createComment(CommentCreationRequest request) {
@@ -41,6 +44,16 @@ public class CommentServiceImpl implements CommentService {
         comment.setUser(user);
         comment.setPost(post);
         commentRepository.save(comment);
+
+        if (!post.getUser().getId().equals(user.getId()))
+            notificationService.sendNotification(NotificationFactory
+                    .commentPost(
+                            post.getUser(),
+                            user,
+                            comment.getId(),
+                            postId
+                    ));
+
         return commentMapper.toCommentResponse(comment);
     }
 

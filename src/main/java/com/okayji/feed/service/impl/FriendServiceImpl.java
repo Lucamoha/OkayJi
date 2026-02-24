@@ -14,7 +14,10 @@ import com.okayji.identity.entity.User;
 import com.okayji.identity.repository.UserRepository;
 import com.okayji.mapper.FriendRequestMapper;
 import com.okayji.mapper.ProfileMapper;
+import com.okayji.notification.service.NotificationService;
+import com.okayji.notification.service.impl.NotificationFactory;
 import com.okayji.utils.PairUser;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -34,6 +37,7 @@ public class FriendServiceImpl implements FriendService {
     private final ProfileMapper profileMapper;
     private final FriendRequestMapper friendRequestMapper;
     private final ChatService chatService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional(rollbackOn = AppException.class)
@@ -55,10 +59,13 @@ public class FriendServiceImpl implements FriendService {
                     sender.getId()))
                 throw new AppException(AppError.FRIEND_REQUEST_EXISTS);
 
-            friendRequestRepository.save(FriendRequest.builder()
+            FriendRequest friendRequest = FriendRequest.builder()
                     .sender(sender)
                     .receiver(receiver)
-                    .build());
+                    .build();
+
+            friendRequestRepository.save(friendRequest);
+            notificationService.sendNotification(NotificationFactory.friendRequest(friendRequest));
         }
         catch (IllegalArgumentException e) {
             throw new AppException(AppError.FRIEND_YOURSELF);
@@ -80,12 +87,15 @@ public class FriendServiceImpl implements FriendService {
 
         var pair = PairUser.canonical(sender, receiver);
 
-        friendRepository.saveAndFlush(Friend.builder()
+        friendRepository.save(Friend.builder()
                 .userLow(pair.getLow())
                 .userHigh(pair.getHigh())
                 .build());
         friendRequestRepository.delete(friendRequest);
+
         chatService.createDirectChat(sender.getId());
+
+        notificationService.sendNotification(NotificationFactory.newFriend(sender, receiver));
     }
 
     @Override
