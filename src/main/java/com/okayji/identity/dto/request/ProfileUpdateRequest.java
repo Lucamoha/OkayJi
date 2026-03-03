@@ -1,6 +1,6 @@
 package com.okayji.identity.dto.request;
 
-import com.okayji.enums.Gender;
+import com.okayji.identity.entity.Gender;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;

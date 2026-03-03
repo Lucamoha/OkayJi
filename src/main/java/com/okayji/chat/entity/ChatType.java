@@ -1,4 +1,4 @@
-package com.okayji.enums;
+package com.okayji.chat.entity;
 
 public enum ChatType {
     DIRECT, GROUP

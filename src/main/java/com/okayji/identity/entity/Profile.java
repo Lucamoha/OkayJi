@@ -1,6 +1,5 @@
 package com.okayji.identity.entity;
 
-import com.okayji.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

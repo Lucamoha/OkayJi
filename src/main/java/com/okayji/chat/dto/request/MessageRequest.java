@@ -1,6 +1,6 @@
 package com.okayji.chat.dto.request;
 
-import com.okayji.enums.MessageType;
+import com.okayji.chat.entity.MessageType;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;

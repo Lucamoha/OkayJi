@@ -1,7 +1,7 @@
 package com.okayji.identity.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.okayji.enums.Gender;
+import com.okayji.identity.entity.Gender;
 import com.okayji.feed.dto.response.FriendReqResponse;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package com.okayji.chat.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.okayji.enums.ChatEvent;
+import com.okayji.chat.entity.ChatEvent;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AccessLevel;

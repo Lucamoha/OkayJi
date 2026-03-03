@@ -1,7 +1,7 @@
 package com.okayji.identity.dto.request;
 
 
-import com.okayji.enums.Gender;
+import com.okayji.identity.entity.Gender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;

@@ -2,7 +2,7 @@ package com.okayji.notification.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.okayji.enums.NotificationType;
+import com.okayji.notification.entity.NotificationType;
 import com.okayji.feed.entity.FriendRequest;
 import com.okayji.feed.entity.Post;
 import com.okayji.identity.entity.User;

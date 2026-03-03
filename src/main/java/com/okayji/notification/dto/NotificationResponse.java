@@ -1,7 +1,7 @@
 package com.okayji.notification.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.okayji.enums.NotificationType;
+import com.okayji.notification.entity.NotificationType;
 import lombok.Builder;
 
 import java.time.Instant;

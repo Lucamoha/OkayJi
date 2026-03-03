@@ -1,6 +1,5 @@
 package com.okayji.feed.entity;
 
-import com.okayji.enums.PostStatus;
 import com.okayji.identity.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,4 +1,4 @@
-package com.okayji.enums;
+package com.okayji.feed.entity;
 
 public enum PostMediaType {
     IMAGE,

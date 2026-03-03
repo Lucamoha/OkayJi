@@ -1,4 +1,4 @@
-package com.okayji.enums;
+package com.okayji.notification.entity;
 
 public enum NotificationType {
     FRIEND_REQUEST,

@@ -1,6 +1,5 @@
 package com.okayji.identity.entity;
 
-import com.okayji.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

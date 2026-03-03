@@ -9,7 +9,7 @@ import com.okayji.chat.repository.ChatMemberRepository;
 import com.okayji.chat.repository.ChatRepository;
 import com.okayji.chat.repository.MessageRepository;
 import com.okayji.chat.service.MessageService;
-import com.okayji.enums.ChatEvent;
+import com.okayji.chat.entity.ChatEvent;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
 import com.okayji.identity.entity.User;

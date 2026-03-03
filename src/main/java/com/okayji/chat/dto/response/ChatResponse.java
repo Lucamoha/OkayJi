@@ -1,7 +1,7 @@
 package com.okayji.chat.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.okayji.enums.ChatType;
+import com.okayji.chat.entity.ChatType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;

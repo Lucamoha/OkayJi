@@ -1,4 +1,4 @@
-package com.okayji.enums;
+package com.okayji.identity.entity;
 
 public enum Gender {
     MALE, FEMALE, OTHER

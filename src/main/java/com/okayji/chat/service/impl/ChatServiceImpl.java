@@ -11,7 +11,7 @@ import com.okayji.chat.repository.ChatMemberRepository;
 import com.okayji.chat.repository.ChatRepository;
 import com.okayji.chat.repository.MessageRepository;
 import com.okayji.chat.service.ChatService;
-import com.okayji.enums.ChatType;
+import com.okayji.chat.entity.ChatType;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
 import com.okayji.feed.repository.FriendRepository;

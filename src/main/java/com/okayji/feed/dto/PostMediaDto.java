@@ -1,6 +1,6 @@
 package com.okayji.feed.dto;
 
-import com.okayji.enums.PostMediaType;
+import com.okayji.feed.entity.PostMediaType;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;

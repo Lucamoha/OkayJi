@@ -1,6 +1,5 @@
 package com.okayji.feed.entity;
 
-import com.okayji.enums.PostMediaType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

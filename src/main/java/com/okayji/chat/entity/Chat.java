@@ -1,6 +1,5 @@
 package com.okayji.chat.entity;
 
-import com.okayji.enums.ChatType;
 import com.okayji.identity.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

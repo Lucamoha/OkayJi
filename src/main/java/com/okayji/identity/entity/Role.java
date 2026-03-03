@@ -1,6 +1,5 @@
 package com.okayji.identity.entity;
 
-import com.okayji.enums.UserRole;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

@@ -7,7 +7,7 @@ import com.okayji.identity.dto.response.UserResponse;
 import com.okayji.identity.entity.Profile;
 import com.okayji.identity.entity.Role;
 import com.okayji.identity.entity.User;
-import com.okayji.enums.UserRole;
+import com.okayji.identity.entity.UserRole;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
 import com.okayji.mapper.UserMapper;

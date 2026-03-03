@@ -1,6 +1,5 @@
 package com.okayji.notification.entity;
 
-import com.okayji.enums.NotificationType;
 import com.okayji.identity.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
