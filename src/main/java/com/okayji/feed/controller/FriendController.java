@@ -62,8 +62,9 @@ public class FriendController {
 
     @PostMapping("/accept/{friendRequestId}")
     @Operation(summary = "Accept friend request")
-    @PreAuthorize("@socialAuth.canAlterFriendRequest(authentication, #friendRequestId, 'ACCEPT')")
-    public ApiResponse<?> acceptFriendRequest(@PathVariable String friendRequestId){
+    @PreAuthorize("@permissionCheck.canAlterFriendRequest(currentUser.getId(), #friendRequestId, 'ACCEPT')")
+    public ApiResponse<?> acceptFriendRequest(@PathVariable String friendRequestId,
+                                              @CurrentUser User currentUser){
         friendService.acceptFriendRequest(friendRequestId);
         return ApiResponse.builder()
                 .success(true)
@@ -73,8 +74,9 @@ public class FriendController {
 
     @PostMapping("/decline/{friendRequestId}")
     @Operation(summary = "Decline friend request")
-    @PreAuthorize("@socialAuth.canAlterFriendRequest(authentication, #friendRequestId, 'DECLINE')")
-    public ApiResponse<?> declineFriendRequest(@PathVariable String friendRequestId){
+    @PreAuthorize("@permissionCheck.canAlterFriendRequest(currentUser.getId(), #friendRequestId, 'DECLINE')")
+    public ApiResponse<?> declineFriendRequest(@PathVariable String friendRequestId,
+                                               @CurrentUser User currentUser){
         friendService.deleteFriendRequest(friendRequestId);
         return ApiResponse.builder()
                 .success(true)
@@ -84,8 +86,9 @@ public class FriendController {
 
     @PostMapping("/cancel/{friendRequestId}")
     @Operation(summary = "Cancel friend request")
-    @PreAuthorize("@socialAuth.canAlterFriendRequest(authentication, #friendRequestId, 'CANCEL')")
-    public ApiResponse<?> cancelFriendRequest(@PathVariable String friendRequestId){
+    @PreAuthorize("@permissionCheck.canAlterFriendRequest(currentUser.getId(), #friendRequestId, 'CANCEL')")
+    public ApiResponse<?> cancelFriendRequest(@PathVariable String friendRequestId,
+                                              @CurrentUser User currentUser){
         friendService.deleteFriendRequest(friendRequestId);
         return ApiResponse.builder()
                 .success(true)

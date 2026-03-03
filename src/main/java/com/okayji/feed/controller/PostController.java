@@ -30,6 +30,7 @@ public class PostController {
 
     @GetMapping("/{postId}")
     @Operation(summary = "Get post by postId")
+    @PreAuthorize("@permissionCheck.canViewPost(currentUser.getId(), #postId)")
     ApiResponse<PostResponse> getPost(@PathVariable String postId,
                                       @CurrentUser User currentUser) {
         return ApiResponse.<PostResponse>builder()
@@ -41,9 +42,10 @@ public class PostController {
 
     @PutMapping("/{postId}")
     @Operation(summary = "Update post by postId")
-    @PreAuthorize("@socialAuth.canAlterPost(authentication, #postId)")
+    @PreAuthorize("@permissionCheck.canAlterPost(currentUser.getId(), #postId)")
     ApiResponse<PostResponse> updatePost(@PathVariable String postId,
-                                         @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
+                                         @Valid @RequestBody PostUpdateRequest postUpdateRequest,
+                                         @CurrentUser User currentUser) {
         return ApiResponse.<PostResponse>builder()
                 .success(true)
                 .message("Update post success")
@@ -53,9 +55,11 @@ public class PostController {
 
     @GetMapping("/{postId}/comments")
     @Operation(summary = "Get comments in post by postId")
+    @PreAuthorize("@permissionCheck.canViewPost(currentUser.getId(), #postId)")
     ApiResponse<Page<CommentResponse>> getCommentsByPost(@PathVariable String postId,
                                                          @RequestParam(defaultValue = "0") int page,
-                                                         @RequestParam(defaultValue = "20") int size
+                                                         @RequestParam(defaultValue = "20") int size,
+                                                         @CurrentUser User currentUser
     ) {
         return ApiResponse.<Page<CommentResponse>>builder()
                 .success(true)
@@ -76,8 +80,9 @@ public class PostController {
 
     @DeleteMapping("/{postId}")
     @Operation(summary = "Delete post by postId")
-    @PreAuthorize("@socialAuth.canAlterPost(authentication, #postId)")
-    ApiResponse<?> deletePost(@PathVariable String postId) {
+    @PreAuthorize("@permissionCheck.canAlterPost(currentUser.getId(), #postId)")
+    ApiResponse<?> deletePost(@PathVariable String postId,
+                              @CurrentUser User currentUser) {
         postService.deletePostById(postId);
         return ApiResponse.builder()
                 .success(true)
@@ -86,6 +91,7 @@ public class PostController {
 
     @PostMapping("/{postId}/like")
     @Operation(summary = "React post by postId")
+    @PreAuthorize("@permissionCheck.canViewPost(currentUser.getId(), #postId)")
     ApiResponse<?> reactPost(@PathVariable String postId,
                              @CurrentUser User currentUser) {
         reactionService.like(currentUser.getId(), postId);
@@ -96,6 +102,7 @@ public class PostController {
 
     @PostMapping("{postId}/unlike")
     @Operation(summary = "Unreact post by postId")
+    @PreAuthorize("@permissionCheck.canViewPost(currentUser.getId(), #postId)")
     ApiResponse<?> unReactPost(@PathVariable String postId,
                                @CurrentUser User currentUser) {
         reactionService.unlike(currentUser.getId(), postId);

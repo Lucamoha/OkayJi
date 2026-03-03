@@ -40,7 +40,7 @@ public class ChatController {
 
     @GetMapping("/{chatId}")
     @Operation(summary = "Get chat")
-    @PreAuthorize("@socialAuth.canAccessChat(authentication, #chatId)")
+    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #chatId)")
     ApiResponse<ChatResponse> getChat(@PathVariable String chatId,
                                       @CurrentUser User currentUser) {
         return ApiResponse.<ChatResponse>builder()
@@ -60,8 +60,9 @@ public class ChatController {
 
     @GetMapping("/{chatId}/members")
     @Operation(summary = "Get members in chat")
-    @PreAuthorize("@socialAuth.canAccessChat(authentication, #chatId)")
-    ApiResponse<List<ChatMemberResponse>> getMembers(@PathVariable String chatId) {
+    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #chatId)")
+    ApiResponse<List<ChatMemberResponse>> getMembers(@PathVariable String chatId,
+                                                     @CurrentUser User currentUser) {
         return ApiResponse.<List<ChatMemberResponse>>builder()
                 .success(true)
                 .data(chatService.getMembers(chatId))
@@ -70,10 +71,11 @@ public class ChatController {
 
     @GetMapping("/{chatId}/messages")
     @Operation(summary = "Get messages in chat")
-    @PreAuthorize("@socialAuth.canAccessChat(authentication, #chatId)")
+    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #chatId)")
     ApiResponse<Page<MessageResponse>> getMessages(@PathVariable String chatId, 
                                                    @RequestParam(defaultValue = "0") int page, 
-                                                   @RequestParam(defaultValue = "20") int size) {
+                                                   @RequestParam(defaultValue = "20") int size,
+                                                   @CurrentUser User currentUser) {
         return ApiResponse.<Page<MessageResponse>>builder()
                 .success(true)
                 .data(chatService.getMessages(chatId, page, size))
@@ -92,7 +94,7 @@ public class ChatController {
 
     @PostMapping("/group/{groupId}/leave")
     @Operation(summary = "Leave group chat")
-    @PreAuthorize("@socialAuth.canAccessChat(authentication, #groupId)")
+    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #groupId)")
     ApiResponse<?> leaveGroupChat(@PathVariable String groupId,
                                   @CurrentUser User currentUser) {
         chatService.leaveGroupChat(currentUser.getId(), groupId);
@@ -103,9 +105,10 @@ public class ChatController {
 
     @PutMapping("/group/{groupId}")
     @Operation(summary = "Update group chat information")
-    @PreAuthorize("@socialAuth.canAccessChat(authentication, #groupId)")
+    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #groupId)")
     ApiResponse<ChatResponse> updateGroupChat(@PathVariable String groupId,
-                                              @Valid @RequestBody UpdateGroupChatRequest request) {
+                                              @Valid @RequestBody UpdateGroupChatRequest request,
+                                              @CurrentUser User currentUser) {
         return ApiResponse.<ChatResponse>builder()
                 .success(true)
                 .data(chatService.updateGroupChat(groupId, request))

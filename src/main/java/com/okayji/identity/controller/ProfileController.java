@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,6 +37,7 @@ public class ProfileController {
 
     @GetMapping("/{userIdOrUsername}/posts")
     @Operation(summary = "Get Users posts by username or userId")
+    @PreAuthorize("@permissionCheck.canViewProfilePosts(currentUser.getId(), #userIdOrUsername)")
     ApiResponse<Page<PostResponse>> getPostsByUser(@PathVariable String userIdOrUsername,
                                                    @RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "20") int size,

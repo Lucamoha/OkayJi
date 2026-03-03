@@ -23,11 +23,20 @@ public class Profile {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     User user;
+
     String fullName;
+
     @Enumerated(EnumType.STRING)
     Gender gender = Gender.OTHER;
+
     String bio;
+
     LocalDate birthday;
+
     String avatarUrl;
+
     String coverImageUrl;
+
+    @Enumerated(EnumType.STRING)
+    ProfileVisibility visibility = ProfileVisibility.PUBLIC;
 }

@@ -6,6 +6,7 @@ import com.okayji.identity.entity.InvalidatedToken;
 import com.okayji.exception.AppError;
 import com.okayji.exception.AppException;
 import com.okayji.identity.entity.User;
+import com.okayji.identity.entity.UserStatus;
 import com.okayji.identity.repository.InvalidatedTokenRepository;
 import com.okayji.identity.service.AuthenticationService;
 import com.okayji.identity.service.JwtService;
@@ -56,14 +57,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new AppException(AppError.WRONG_PASSWORD);
         }
 
+        User user = (User) authentication.getPrincipal();
+
+        if (user != null && user.getStatus() == UserStatus.DELETED)
+            throw new AppException(AppError.USER_NOT_FOUND);
+
         log.info("isAuthenticated = {}", authentication.isAuthenticated());
-        log.info("Authorities: {}", authentication.getAuthorities().toString());
+        log.info("Authorities: {}", authentication.getAuthorities());
 
         List<String> authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(Objects::nonNull)
                 .filter(authority -> authority.startsWith("ROLE_")).toList();
-        User user = (User) authentication.getPrincipal();
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtService.generateAccessToken(

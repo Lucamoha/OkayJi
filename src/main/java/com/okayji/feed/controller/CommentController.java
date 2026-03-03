@@ -24,6 +24,7 @@ public class CommentController {
 
     @PostMapping
     @Operation(summary = "Create comment")
+    @PreAuthorize("@permissionCheck.canViewPost(currentUser.getId(), request.getPostId())")
     ApiResponse<CommentResponse> createComment(@Valid @RequestBody CommentCreationRequest request,
                                                @CurrentUser User currentUser) {
         return ApiResponse.<CommentResponse>builder()
@@ -34,7 +35,7 @@ public class CommentController {
 
     @PutMapping("/{commentId}")
     @Operation(summary = "Update comment by commentId")
-    @PreAuthorize("@socialAuth.canAlterComment(authentication, #commentId)")
+    @PreAuthorize("@permissionCheck.canAlterComment(currentUser.getId(), #commentId)")
     ApiResponse<CommentResponse> updateComment(@PathVariable String commentId,
                                                @Valid @RequestBody CommentUpdateRequest request) {
         return ApiResponse.<CommentResponse>builder()
@@ -45,7 +46,7 @@ public class CommentController {
 
     @DeleteMapping("/{commentId}")
     @Operation(summary = "Delete comment by commentId")
-    @PreAuthorize("@socialAuth.canAlterComment(authentication, #commentId)")
+    @PreAuthorize("@permissionCheck.canAlterComment(currentUser.getId(), #commentId)")
     ApiResponse<?> deleteComment(@PathVariable String commentId) {
         commentService.deleteComment(commentId);
         return ApiResponse.builder()

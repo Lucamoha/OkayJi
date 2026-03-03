@@ -3,6 +3,7 @@ package com.okayji.identity.dto.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.okayji.identity.entity.Gender;
 import com.okayji.feed.dto.response.FriendReqResponse;
+import com.okayji.identity.entity.ProfileVisibility;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,4 +26,5 @@ public class ProfileResponse {
     String coverImageUrl;
     boolean isFriend;
     FriendReqResponse friendRequest;
+    ProfileVisibility visibility;
 }

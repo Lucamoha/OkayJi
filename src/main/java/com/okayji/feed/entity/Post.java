@@ -43,5 +43,5 @@ public class Post {
     List<PostMedia> postMedia = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
-    PostStatus status = PostStatus.PUBLISHED;
+    PostStatus status = PostStatus.PENDING;
 }

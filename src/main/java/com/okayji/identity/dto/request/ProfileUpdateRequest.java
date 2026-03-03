@@ -1,6 +1,7 @@
 package com.okayji.identity.dto.request;
 
 import com.okayji.identity.entity.Gender;
+import com.okayji.identity.entity.ProfileVisibility;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -16,4 +17,5 @@ public class ProfileUpdateRequest {
     LocalDate birthday;
     String avatarUrl;
     String coverImageUrl;
+    ProfileVisibility visibility;
 }
