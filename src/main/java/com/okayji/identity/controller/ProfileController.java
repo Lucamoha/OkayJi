@@ -37,7 +37,7 @@ public class ProfileController {
 
     @GetMapping("/{userIdOrUsername}/posts")
     @Operation(summary = "Get Users posts by username or userId")
-    @PreAuthorize("@permissionCheck.canViewProfilePosts(currentUser.getId(), #userIdOrUsername)")
+    @PreAuthorize("@permissionCheck.canViewProfilePosts(#currentUser.id, #userIdOrUsername)")
     ApiResponse<Page<PostResponse>> getPostsByUser(@PathVariable String userIdOrUsername,
                                                    @RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "20") int size,

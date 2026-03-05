@@ -42,7 +42,7 @@ public class NotificationController {
 
     @PostMapping("/{notificationId}")
     @Operation(summary = "Read noti by id")
-    @PreAuthorize("@permissionCheck.canReadNotification(currentUser.getId(), #notificationId)")
+    @PreAuthorize("@permissionCheck.canReadNotification(#currentUser.id, #notificationId)")
     ApiResponse<?> readNotification(@PathVariable("notificationId") Long notificationId,
                                     @CurrentUser User currentUser) {
         notificationService.readNotification(notificationId);

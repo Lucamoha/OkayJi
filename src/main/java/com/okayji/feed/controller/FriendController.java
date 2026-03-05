@@ -62,7 +62,7 @@ public class FriendController {
 
     @PostMapping("/accept/{friendRequestId}")
     @Operation(summary = "Accept friend request")
-    @PreAuthorize("@permissionCheck.canAlterFriendRequest(currentUser.getId(), #friendRequestId, 'ACCEPT')")
+    @PreAuthorize("@permissionCheck.canAlterFriendRequest(#currentUser.id, #friendRequestId, 'ACCEPT')")
     public ApiResponse<?> acceptFriendRequest(@PathVariable String friendRequestId,
                                               @CurrentUser User currentUser){
         friendService.acceptFriendRequest(friendRequestId);
@@ -74,7 +74,7 @@ public class FriendController {
 
     @PostMapping("/decline/{friendRequestId}")
     @Operation(summary = "Decline friend request")
-    @PreAuthorize("@permissionCheck.canAlterFriendRequest(currentUser.getId(), #friendRequestId, 'DECLINE')")
+    @PreAuthorize("@permissionCheck.canAlterFriendRequest(#currentUser.id, #friendRequestId, 'DECLINE')")
     public ApiResponse<?> declineFriendRequest(@PathVariable String friendRequestId,
                                                @CurrentUser User currentUser){
         friendService.deleteFriendRequest(friendRequestId);
@@ -86,7 +86,7 @@ public class FriendController {
 
     @PostMapping("/cancel/{friendRequestId}")
     @Operation(summary = "Cancel friend request")
-    @PreAuthorize("@permissionCheck.canAlterFriendRequest(currentUser.getId(), #friendRequestId, 'CANCEL')")
+    @PreAuthorize("@permissionCheck.canAlterFriendRequest(#currentUser.id, #friendRequestId, 'CANCEL')")
     public ApiResponse<?> cancelFriendRequest(@PathVariable String friendRequestId,
                                               @CurrentUser User currentUser){
         friendService.deleteFriendRequest(friendRequestId);

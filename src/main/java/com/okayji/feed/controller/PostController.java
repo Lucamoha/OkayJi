@@ -30,7 +30,7 @@ public class PostController {
 
     @GetMapping("/{postId}")
     @Operation(summary = "Get post by postId")
-    @PreAuthorize("@permissionCheck.canViewPost(currentUser.getId(), #postId)")
+    @PreAuthorize("@permissionCheck.canViewPost(#currentUser.id, #postId)")
     ApiResponse<PostResponse> getPost(@PathVariable String postId,
                                       @CurrentUser User currentUser) {
         return ApiResponse.<PostResponse>builder()
@@ -42,7 +42,7 @@ public class PostController {
 
     @PutMapping("/{postId}")
     @Operation(summary = "Update post by postId")
-    @PreAuthorize("@permissionCheck.canAlterPost(currentUser.getId(), #postId)")
+    @PreAuthorize("@permissionCheck.canAlterPost(#currentUser.id, #postId)")
     ApiResponse<PostResponse> updatePost(@PathVariable String postId,
                                          @Valid @RequestBody PostUpdateRequest postUpdateRequest,
                                          @CurrentUser User currentUser) {
@@ -55,7 +55,7 @@ public class PostController {
 
     @GetMapping("/{postId}/comments")
     @Operation(summary = "Get comments in post by postId")
-    @PreAuthorize("@permissionCheck.canViewPost(currentUser.getId(), #postId)")
+    @PreAuthorize("@permissionCheck.canViewPost(#currentUser.id, #postId)")
     ApiResponse<Page<CommentResponse>> getCommentsByPost(@PathVariable String postId,
                                                          @RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "20") int size,
@@ -80,7 +80,7 @@ public class PostController {
 
     @DeleteMapping("/{postId}")
     @Operation(summary = "Delete post by postId")
-    @PreAuthorize("@permissionCheck.canAlterPost(currentUser.getId(), #postId)")
+    @PreAuthorize("@permissionCheck.canAlterPost(#currentUser.id, #postId)")
     ApiResponse<?> deletePost(@PathVariable String postId,
                               @CurrentUser User currentUser) {
         postService.deletePostById(postId);
@@ -91,7 +91,7 @@ public class PostController {
 
     @PostMapping("/{postId}/like")
     @Operation(summary = "React post by postId")
-    @PreAuthorize("@permissionCheck.canViewPost(currentUser.getId(), #postId)")
+    @PreAuthorize("@permissionCheck.canViewPost(#currentUser.id, #postId)")
     ApiResponse<?> reactPost(@PathVariable String postId,
                              @CurrentUser User currentUser) {
         reactionService.like(currentUser.getId(), postId);
@@ -102,7 +102,7 @@ public class PostController {
 
     @PostMapping("{postId}/unlike")
     @Operation(summary = "Unreact post by postId")
-    @PreAuthorize("@permissionCheck.canViewPost(currentUser.getId(), #postId)")
+    @PreAuthorize("@permissionCheck.canViewPost(#currentUser.id, #postId)")
     ApiResponse<?> unReactPost(@PathVariable String postId,
                                @CurrentUser User currentUser) {
         reactionService.unlike(currentUser.getId(), postId);

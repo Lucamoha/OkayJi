@@ -7,6 +7,7 @@ import com.okayji.feed.dto.request.PostUpdateRequest;
 import com.okayji.feed.dto.response.PostResponse;
 import com.okayji.feed.entity.Post;
 import com.okayji.feed.entity.PostMedia;
+import com.okayji.feed.entity.PostStatus;
 import com.okayji.feed.repository.CommentRepository;
 import com.okayji.feed.repository.ReactionRepository;
 import com.okayji.identity.entity.User;
@@ -14,6 +15,7 @@ import com.okayji.feed.repository.PostRepository;
 import com.okayji.feed.service.PostService;
 import com.okayji.identity.repository.UserRepository;
 import com.okayji.mapper.PostMapper;
+import com.okayji.moderation.event.PostModerationEvent;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -52,6 +54,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         Post post = postMapper.toPost(postCreationRequest, user);
+        post.setStatus(PostStatus.PENDING);
 
         postCreationRequest.getMedia().forEach(media -> {
             PostMedia postMedia = PostMedia.builder()
@@ -89,18 +92,24 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Page<PostResponse> getPostsByUser(String viewerId, String userIdOrUsername, int page, int size) {
-        userRepository.findUserByIdOrUsername(userIdOrUsername, userIdOrUsername)
+        User user = userRepository.findUserByIdOrUsername(userIdOrUsername, userIdOrUsername)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
 
         Pageable pageable = PageRequest
                 .of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        return postRepository
-                .findByUser_Id(userIdOrUsername, pageable)
-                .map(post -> postMapper.toPostResponse(post,
+        Page<Post> postPage;
+        if (user.getId().equals(viewerId))
+            postPage = postRepository.findByUser_Id(user.getId(), pageable);
+        else
+            postPage = postRepository.findPublishedPostsByUser_Id(user.getId(), pageable);
+
+        return postPage.map(post -> postMapper
+                .toPostResponse(post,
                         reactionRepository.existsByPostIdAndUserId(post.getId(), viewerId),
                         reactionRepository.countByPost_Id(post.getId()),
-                        commentRepository.countByPost_Id(post.getId()))
-                );
+                        commentRepository.countByPost_Id(post.getId())
+                )
+        );
     }
 }

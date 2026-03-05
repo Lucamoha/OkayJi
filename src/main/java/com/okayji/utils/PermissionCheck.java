@@ -6,20 +6,20 @@ import com.okayji.exception.AppException;
 import com.okayji.feed.entity.Comment;
 import com.okayji.feed.entity.FriendRequest;
 import com.okayji.feed.entity.Post;
-import com.okayji.feed.entity.PostStatus;
 import com.okayji.feed.repository.CommentRepository;
 import com.okayji.feed.repository.FriendRepository;
 import com.okayji.feed.repository.FriendRequestRepository;
 import com.okayji.feed.repository.PostRepository;
 import com.okayji.identity.entity.Profile;
-import com.okayji.identity.entity.ProfileVisibility;
 import com.okayji.identity.entity.User;
-import com.okayji.identity.repository.ProfileRepository;
 import com.okayji.identity.repository.UserRepository;
 import com.okayji.notification.entity.Notification;
 import com.okayji.notification.repository.NotificationRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import static com.okayji.feed.entity.PostStatus.PUBLISHED;
+import static com.okayji.identity.entity.ProfileVisibility.PUBLIC;
 
 @Service("permissionCheck")
 @AllArgsConstructor
@@ -30,29 +30,28 @@ public class PermissionCheck {
     private final ChatMemberRepository chatMemberRepository;
     private final FriendRequestRepository friendRequestRepository;
     private final NotificationRepository notificationRepository;
-    private final UserRepository userRepository;
-    private final ProfileRepository profileRepository;
     private final FriendRepository friendRepository;
+    private final UserRepository userRepository;
 
     public boolean canViewPost(String viewerId, String postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
         User author = post.getUser();
 
-        return author.getId().equals(viewerId) || (
-                author.getProfile().getVisibility() == ProfileVisibility.PUBLIC
-                        || isFriend(viewerId, author.getId())
-                        && post.getStatus().equals(PostStatus.PUBLISHED)
-        );
+        boolean isOwner = author.getId().equals(viewerId);
+        boolean canNonOwnerSee = (author.getProfile().getVisibility() == PUBLIC || isFriend(viewerId, author.getId()))
+                && post.getStatus() == PUBLISHED;
+        return isOwner || canNonOwnerSee;
     }
 
-    public boolean canViewProfilePosts(String viewerId, String profileId) {
-        Profile profile = profileRepository.findById(profileId)
-                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
+    public boolean canViewProfilePosts(String viewerId, String userIdOrUsername) {
+        Profile profile = userRepository.findUserByIdOrUsername(userIdOrUsername, userIdOrUsername)
+                .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND))
+                .getProfile();
 
-        return viewerId.equals(profileId)
-                || profile.getVisibility().equals(ProfileVisibility.PUBLIC)
-                || isFriend(profileId, profileId);
+        return viewerId.equals(profile.getUserId())
+                || profile.getVisibility().equals(PUBLIC)
+                || isFriend(viewerId, profile.getUserId());
     }
 
     public boolean isFriend(String userId, String friendId) {

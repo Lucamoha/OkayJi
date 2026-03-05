@@ -13,10 +13,20 @@ import java.util.Collection;
 
 public interface PostRepository extends JpaRepository<Post,String> {
     Page<Post> findByUser_Id(String userId, Pageable pageable);
+
+    @Query("""
+        select p
+        from Post p
+        where p.user.id = :userId
+        and p.status = com.okayji.feed.entity.PostStatus.PUBLISHED
+    """)
+    Page<Post> findPublishedPostsByUser_Id(@Param("userId") String userId, Pageable pageable);
+
     @Query("""
         select p
         from Post p
         where p.user.id in :authorIds
+        and p.status = com.okayji.feed.entity.PostStatus.PUBLISHED
         order by p.createdAt desc, p.id desc
     """)
     Slice<Post> findFeedFirstPage(@Param("authorIds") Collection<String> authorIds, Pageable pageable);
@@ -25,6 +35,7 @@ public interface PostRepository extends JpaRepository<Post,String> {
         select p
         from Post p
         where p.user.id in :authorIds
+        and p.status = com.okayji.feed.entity.PostStatus.PUBLISHED
         and (p.createdAt < :cursorTime
         or (p.createdAt = :cursorTime and p.id < :cursorId))
         order by p.createdAt desc, p.id desc

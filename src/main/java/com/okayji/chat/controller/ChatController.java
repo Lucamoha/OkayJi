@@ -40,7 +40,7 @@ public class ChatController {
 
     @GetMapping("/{chatId}")
     @Operation(summary = "Get chat")
-    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #chatId)")
+    @PreAuthorize("@permissionCheck.canAccessChat(#currentUser.id, #chatId)")
     ApiResponse<ChatResponse> getChat(@PathVariable String chatId,
                                       @CurrentUser User currentUser) {
         return ApiResponse.<ChatResponse>builder()
@@ -60,7 +60,7 @@ public class ChatController {
 
     @GetMapping("/{chatId}/members")
     @Operation(summary = "Get members in chat")
-    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #chatId)")
+    @PreAuthorize("@permissionCheck.canAccessChat(#currentUser.id, #chatId)")
     ApiResponse<List<ChatMemberResponse>> getMembers(@PathVariable String chatId,
                                                      @CurrentUser User currentUser) {
         return ApiResponse.<List<ChatMemberResponse>>builder()
@@ -71,7 +71,7 @@ public class ChatController {
 
     @GetMapping("/{chatId}/messages")
     @Operation(summary = "Get messages in chat")
-    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #chatId)")
+    @PreAuthorize("@permissionCheck.canAccessChat(#currentUser.id, #chatId)")
     ApiResponse<Page<MessageResponse>> getMessages(@PathVariable String chatId, 
                                                    @RequestParam(defaultValue = "0") int page, 
                                                    @RequestParam(defaultValue = "20") int size,
@@ -94,7 +94,7 @@ public class ChatController {
 
     @PostMapping("/group/{groupId}/leave")
     @Operation(summary = "Leave group chat")
-    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #groupId)")
+    @PreAuthorize("@permissionCheck.canAccessChat(#currentUser.id, #groupId)")
     ApiResponse<?> leaveGroupChat(@PathVariable String groupId,
                                   @CurrentUser User currentUser) {
         chatService.leaveGroupChat(currentUser.getId(), groupId);
@@ -105,7 +105,7 @@ public class ChatController {
 
     @PutMapping("/group/{groupId}")
     @Operation(summary = "Update group chat information")
-    @PreAuthorize("@permissionCheck.canAccessChat(currentUser.getId(), #groupId)")
+    @PreAuthorize("@permissionCheck.canAccessChat(#currentUser.id, #groupId)")
     ApiResponse<ChatResponse> updateGroupChat(@PathVariable String groupId,
                                               @Valid @RequestBody UpdateGroupChatRequest request,
                                               @CurrentUser User currentUser) {
