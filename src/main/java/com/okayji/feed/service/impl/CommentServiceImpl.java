@@ -13,9 +13,11 @@ import com.okayji.feed.service.CommentService;
 import com.okayji.identity.entity.User;
 import com.okayji.identity.repository.UserRepository;
 import com.okayji.mapper.CommentMapper;
+import com.okayji.moderation.event.CommentModerationEvent;
 import com.okayji.notification.service.NotificationService;
 import com.okayji.notification.service.NotificationFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,7 @@ public class CommentServiceImpl implements CommentService {
     private final PostRepository postRepository;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public CommentResponse createComment(String userId, CommentCreationRequest request) {
@@ -56,6 +59,7 @@ public class CommentServiceImpl implements CommentService {
                             postId
                     ));
 
+        applicationEventPublisher.publishEvent(new CommentModerationEvent(comment.getId()));
         return commentMapper.toCommentResponse(comment);
     }
 
@@ -67,6 +71,7 @@ public class CommentServiceImpl implements CommentService {
         commentMapper.updateComment(comment, request);
         commentRepository.save(comment);
 
+        applicationEventPublisher.publishEvent(new CommentModerationEvent(commentId));
         return commentMapper.toCommentResponse(comment);
     }
 

@@ -12,6 +12,13 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      moderation:
+        options:
+          model: omni-moderation-latest
+      base-url: https://api.openai.com
 
 jwt:
   signerKey: ${JWT_SIGNER_KEY}

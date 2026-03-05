@@ -19,6 +19,7 @@ import com.okayji.moderation.event.PostModerationEvent;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,7 @@ public class PostServiceImpl implements PostService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final EntityManager entityManager;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public PostResponse getPostById(String viewerId, String id) {
@@ -68,6 +70,7 @@ public class PostServiceImpl implements PostService {
         postRepository.saveAndFlush(post);
         entityManager.refresh(post);
 
+        applicationEventPublisher.publishEvent(new PostModerationEvent(post.getId()));
         return postMapper.toPostResponse(post);
     }
 
@@ -77,8 +80,10 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
         postMapper.updatePost(post, postUpdateRequest);
+        post.setStatus(PostStatus.PENDING);
         postRepository.save(post);
 
+        applicationEventPublisher.publishEvent(new PostModerationEvent(post.getId()));
         return postMapper.toPostResponse(post);
     }
 

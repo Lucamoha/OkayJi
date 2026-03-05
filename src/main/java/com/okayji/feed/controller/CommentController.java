@@ -24,7 +24,7 @@ public class CommentController {
 
     @PostMapping
     @Operation(summary = "Create comment")
-    @PreAuthorize("@permissionCheck.canViewPost(#currentUser.id, request.getPostId())")
+    @PreAuthorize("@permissionCheck.canViewPost(#currentUser.id, #request.getPostId())")
     ApiResponse<CommentResponse> createComment(@Valid @RequestBody CommentCreationRequest request,
                                                @CurrentUser User currentUser) {
         return ApiResponse.<CommentResponse>builder()
