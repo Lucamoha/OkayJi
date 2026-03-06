@@ -1,5 +1,6 @@
 package com.okayji.moderation.service.impl;
 
+import com.okayji.file.service.S3Service;
 import com.okayji.moderation.dto.ModerationVerdict;
 import com.okayji.moderation.dto.request.OpenAiModerationRequest;
 import com.okayji.moderation.dto.response.OpenAiModerationResponse;
@@ -15,8 +16,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class ModerationServiceImpl implements ModerationService {
@@ -28,13 +31,16 @@ public class ModerationServiceImpl implements ModerationService {
     private final OpenAiModerationModel openAiModerationModel;
     private final OpenAiModerationOptions moderationOptions;
     private final RestClient openAiRestClient;
+    private final S3Service s3Service;
+    private final String ffmpegPath;
 
     public ModerationServiceImpl(
             OpenAiModerationModel openAiModerationModel,
             @Value("${spring.ai.openai.moderation.options.model}") String model,
             @Value("${spring.ai.openai.api-key}") String openaiApiKey,
-            @Value("${spring.ai.openai.base-url}") String baseUrl
-    ) {
+            @Value("${spring.ai.openai.base-url}") String baseUrl,
+            S3Service s3Service,
+            @Value("${app.ffmpeg.path}") String ffmpegPath) {
         this.openAiModerationModel = openAiModerationModel;
         this.model = model;
 
@@ -47,6 +53,8 @@ public class ModerationServiceImpl implements ModerationService {
                 .defaultHeader("Authorization", "Bearer " + openaiApiKey)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
+        this.s3Service = s3Service;
+        this.ffmpegPath = ffmpegPath;
     }
 
     @Override
@@ -99,6 +107,38 @@ public class ModerationServiceImpl implements ModerationService {
                 "openai",
                 resp.model()
         );
+    }
+
+    @Override
+    public List<ModerationVerdict> moderateVideoUrl(String videoUrl) {
+        Path tempVideo = null;
+        List<Path> extractedFrames = new ArrayList<>();
+        List<String> uploadedFrameUrls = new ArrayList<>();
+        List<ModerationVerdict> responses = new ArrayList<>();
+        try {
+            tempVideo = s3Service.downloadToTempFile(videoUrl);
+            extractedFrames = extractFrames(tempVideo, 5);
+
+            for (Path frame : extractedFrames) {
+                String frameUrl = s3Service.uploadTempFrame(
+                        frame,
+                        "image/jpeg",
+                        "moderations"
+                );
+                uploadedFrameUrls.add(frameUrl);
+
+                ModerationVerdict verdict = moderateImageUrl(frameUrl);
+                responses.add(verdict);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to moderate video " + videoUrl, e);
+        }
+        finally {
+            extractedFrames.forEach(this::deleteQuietly);
+            deleteQuietly(tempVideo);
+            uploadedFrameUrls.forEach(s3Service::deleteObject);
+        }
+        return responses;
     }
 
     private ModerationDecision decide(Map<String, Double> scores) {
@@ -159,5 +199,54 @@ public class ModerationServiceImpl implements ModerationService {
         map.put("violence", categories.isViolence());
         map.put("violence/graphic", categories.isViolenceGraphic());
         return map;
+    }
+
+    private List<Path> extractFrames(Path videoPath, int everySeconds) {
+        try {
+            Path outputDir = Files.createTempDirectory("frames-");
+
+            ProcessBuilder pb = new ProcessBuilder(
+                    ffmpegPath,
+                    "-loglevel", "error",
+                    "-i", videoPath.toString(),
+                    "-vf", "fps=1/" + everySeconds,
+                    "-q:v", "5",
+                    outputDir.resolve("frame_%05d.jpg").toString()
+            );
+
+            pb.redirectErrorStream(true);
+            pb.inheritIO();
+
+            Process process = pb.start();
+            int exit = process.waitFor();
+
+            if (exit != 0) {
+                throw new RuntimeException("ffmpeg failed with exit code " + exit);
+            }
+
+            try (Stream<Path> stream = Files.list(outputDir)) {
+                return stream.filter(p -> p.getFileName().toString().endsWith(".jpg"))
+                        .sorted()
+                        .toList();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot extract frames from video", e);
+        }
+    }
+
+    private void deleteQuietly(Path path) {
+        if (path == null) return;
+        try {
+            if (Files.isDirectory(path)) {
+                try (Stream<Path> stream = Files.walk(path)) {
+                    stream.sorted(Comparator.reverseOrder()).forEach(p -> {
+                        try { Files.deleteIfExists(p); } catch (Exception ignored) {}
+                    });
+                }
+            } else {
+                Files.deleteIfExists(path);
+            }
+        } catch (Exception ignored) {
+        }
     }
 }

@@ -3,6 +3,10 @@ server:
   servlet:
     context-path: /
 
+app:
+  ffmpeg:
+    path: C:/Program Files/ffmpeg/bin/ffmpeg.exe
+
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/Okayji

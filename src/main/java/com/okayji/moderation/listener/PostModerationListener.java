@@ -51,24 +51,46 @@ public class PostModerationListener {
                     verdict, TargetType.POST, post.getId(), InputType.TEXT
             );
             moderationResultRepository.save(result);
+
+            if (verdict.decision().equals(ModerationDecision.BLOCK)) {
+                setStatusAndSaveToDb(post, PostStatus.REJECTED);
+                return;
+            }
         }
 
-        // IMAGE
+        boolean reject = false;
+        // MEDIA
         for (PostMedia m : post.getPostMedia()) {
-            log.info("Moderating image post id={}", event.getSource());
-            if (m.getType() != PostMediaType.IMAGE)
-                continue;
+            log.info("Moderating media post id={}", event.getSource());
+            if (m.getType() == PostMediaType.IMAGE) {
+                ModerationVerdict verdict = moderationService.moderateImageUrl(m.getMediaUrl());
+                ModerationResult result = moderationMapper.toModerationResult(
+                        verdict, TargetType.POST, post.getId(), InputType.IMAGE
+                );
+                moderationResultRepository.save(result);
+                if (verdict.decision().equals(ModerationDecision.BLOCK)) reject = true;
+            }
+            else if (m.getType() == PostMediaType.VIDEO) {
+                List<ModerationVerdict> verdicts = moderationService.moderateVideoUrl(m.getMediaUrl());
 
-            ModerationVerdict verdict = moderationService.moderateImageUrl(m.getMediaUrl());
-            ModerationResult result = moderationMapper.toModerationResult(
-                    verdict, TargetType.POST, post.getId(), InputType.IMAGE
-            );
-            moderationResultRepository.save(result);
+                for (ModerationVerdict verdict : verdicts) {
+                    moderationResultRepository.save(moderationMapper.toModerationResult(
+                            verdict, TargetType.POST, post.getId(), InputType.VIDEO_FRAME)
+                    );
+                    if (verdict.decision().equals(ModerationDecision.BLOCK)) {
+                        reject = true;
+                        break;
+                    }
+                }
+            }
+            if (reject) {
+                setStatusAndSaveToDb(post, PostStatus.REJECTED);
+                return;
+            }
         }
 
         PostStatus newStatus = decideFromDb(post.getId());
-        post.setStatus(newStatus);
-        postRepository.save(post);
+        setStatusAndSaveToDb(post, newStatus);
     }
 
     private PostStatus decideFromDb(String postId) {
@@ -82,5 +104,10 @@ public class PostModerationListener {
                 review = true;
         }
         return review ? PostStatus.UNDER_REVIEW : PostStatus.PUBLISHED;
+    }
+
+    private void setStatusAndSaveToDb(Post post, PostStatus status) {
+        post.setStatus(status);
+        postRepository.save(post);
     }
 }

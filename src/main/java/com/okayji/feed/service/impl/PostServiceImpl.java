@@ -10,6 +10,7 @@ import com.okayji.feed.entity.PostMedia;
 import com.okayji.feed.entity.PostStatus;
 import com.okayji.feed.repository.CommentRepository;
 import com.okayji.feed.repository.ReactionRepository;
+import com.okayji.file.service.S3Service;
 import com.okayji.identity.entity.User;
 import com.okayji.feed.repository.PostRepository;
 import com.okayji.feed.service.PostService;
@@ -37,6 +38,7 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
     private final EntityManager entityManager;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final S3Service s3Service;
 
     @Override
     public PostResponse getPostById(String viewerId, String id) {
@@ -92,6 +94,7 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
+        post.getPostMedia().forEach(media -> s3Service.deleteObject(media.getMediaUrl()));
         postRepository.delete(post);
     }
 

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -20,6 +21,9 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartReq
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
 
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -218,6 +222,67 @@ public class S3ServiceImpl implements S3Service {
         }
     }
 
+    @Override
+    public Path downloadToTempFile(String mediaUrl) {
+        String fileKey = mediaUrl;
+        try {
+            fileKey = extractFileKeyFromUrl(mediaUrl);
+            String ext = fileKey.contains(".") ? fileKey.substring(fileKey.lastIndexOf('.')) : ".bin";
+
+            Path tempDir = Files.createTempDirectory("video-download-");
+            Path tempFile = tempDir.resolve(UUID.randomUUID() + ext); // path chưa tồn tại
+
+            log.info("Downloading to temp: fileKey={}, tempFile={}", fileKey, tempFile);
+
+            GetObjectRequest request = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .build();
+
+            s3Client.getObject(request, ResponseTransformer.toFile(tempFile));
+            return tempFile;
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot download file from S3: " + fileKey, e);
+        }
+    }
+
+    @Override
+    public String uploadTempFrame(Path file, String contentType, String prefix) {
+        try {
+            String key = String.format("%s/%s/%s.jpg",
+                    prefix,
+                    LocalDate.now(),
+                    UUID.randomUUID());
+
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .contentType(contentType)
+                    .build();
+
+            s3Client.putObject(request, file);
+            return String.format("https://%s.s3.%s.amazonaws.com/%s",
+                    bucketName, region, key);
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot upload temp frame to S3", e);
+        }
+    }
+
+    @Override
+    public void deleteObject(String fileUrl) {
+        try {
+            String fileKey = extractFileKeyFromUrl(fileUrl);
+            DeleteObjectRequest request = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .build();
+
+            s3Client.deleteObject(request);
+        } catch (Exception e) {
+            log.warn("Cannot delete S3 object {}", fileUrl, e);
+        }
+    }
+
     private String getFileExtension(String filename) {
         int lastDotIndex = filename.lastIndexOf('.');
         if (lastDotIndex == -1) return "";
@@ -259,4 +324,15 @@ public class S3ServiceImpl implements S3Service {
                 "audio/mpeg", "audio/wav", "audio/ogg");
         return allowedTypes.contains(contentType);
     }
+
+    public String extractFileKeyFromUrl(String mediaUrl) {
+        try {
+            URI uri = URI.create(mediaUrl);
+            String path = uri.getPath();
+            return path.startsWith("/") ? path.substring(1) : path;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid S3 URL: " + mediaUrl, e);
+        }
+    }
+
 }
