@@ -13,6 +13,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
@@ -40,7 +41,7 @@ public class ModerationJobExecutor {
         job.setRetryCount(job.getRetryCount() + 1);
         moderationJobRepository.save(job);
 
-        execute(jobId);
+        this.execute(jobId);
     }
 
     @Retryable(
@@ -53,7 +54,7 @@ public class ModerationJobExecutor {
             maxAttempts = 3,
             backoff = @Backoff(delay = 2000, multiplier = 2)
     )
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void execute(Long jobId) throws Exception {
         ModerationJob job = moderationJobRepository.findById(jobId)
                 .orElseThrow(() -> new IllegalArgumentException("Moderation job not found: " + jobId));
@@ -68,7 +69,7 @@ public class ModerationJobExecutor {
     }
 
     @Recover
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recover(Exception ex, Long jobId) {
         ModerationJob job = moderationJobRepository.findById(jobId)
                 .orElseThrow(() -> new IllegalArgumentException("Moderation job not found: " + jobId));
@@ -79,7 +80,7 @@ public class ModerationJobExecutor {
             job.setStatus(ModerationJobStatus.PENDING);
         } else {
             job.setStatus(ModerationJobStatus.FAILED);
-            markTargetNeedsReview(job);
+            this.markTargetNeedsReview(job);
         }
 
         moderationJobRepository.save(job);
