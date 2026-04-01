@@ -42,6 +42,11 @@ public class ModerationJob {
     @Builder.Default
     int maxRetries = 5;
 
-    @OneToMany(mappedBy = "moderationJob", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "moderationJob",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER
+    )
     List<ModerationResult> moderationResults;
 }

@@ -24,18 +24,13 @@ public class ModerationJobScheduler {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void requeueInterruptedJobsOnStartup() {
-        int updated = moderationJobRepository.requeueProcessingJobs(
-                ModerationJobStatus.PROCESSING,
-                ModerationJobStatus.PENDING
-        );
+        int updated = moderationJobRepository.requeueProcessingJobs();
         log.info("Requeued {} interrupted moderation jobs", updated);
     }
 
     @Scheduled(fixedDelayString = "${app.moderation.scheduler.delay-ms:30000}")
-    @Transactional
     public void processPendingJobs() {
         List<ModerationJob> jobs = moderationJobRepository.findJobsForProcessing(
-                ModerationJobStatus.PENDING,
                 PageRequest.of(0, 10)
         );
 

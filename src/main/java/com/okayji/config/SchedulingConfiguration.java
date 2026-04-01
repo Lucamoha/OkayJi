@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@EnableRetry
+@EnableRetry(proxyTargetClass = true)
 @Async
 public class SchedulingConfiguration {
 }

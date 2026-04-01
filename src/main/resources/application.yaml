@@ -20,6 +20,8 @@ spring:
       ddl-auto: update
     show-sql: false
   ai:
+    retry:
+      max-attempts: 1
     openai:
       api-key: ${OPENAI_API_KEY}
       moderation:

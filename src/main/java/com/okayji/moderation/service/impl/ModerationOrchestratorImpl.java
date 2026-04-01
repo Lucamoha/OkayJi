@@ -127,7 +127,7 @@ public class ModerationOrchestratorImpl implements ModerationOrchestrator {
         List<ModerationResult> moderationResults = job.getModerationResults();
         boolean review = false;
 
-        for (ModerationResult m :  moderationResults) {
+        for (ModerationResult m : moderationResults) {
             if (m.getDecision().equals(ModerationDecision.BLOCK))
                 return PostStatus.REJECTED;
             if (m.getDecision().equals(ModerationDecision.REVIEW))

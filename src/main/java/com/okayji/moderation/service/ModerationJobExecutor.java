@@ -1,14 +1,11 @@
 package com.okayji.moderation.service;
 
-import com.okayji.feed.entity.Post;
-import com.okayji.feed.entity.PostStatus;
 import com.okayji.feed.repository.PostRepository;
 import com.okayji.moderation.entity.ModerationJob;
 import com.okayji.moderation.entity.ModerationJobStatus;
-import com.okayji.moderation.entity.TargetType;
 import com.okayji.moderation.repository.ModerationJobRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -16,32 +13,29 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j(topic = "MODERATION-JOB-EXECUTOR")
 public class ModerationJobExecutor {
-
     private final ModerationJobRepository moderationJobRepository;
     private final PostRepository postRepository;
     private final ModerationOrchestrator moderationOrchestrator;
+    private final ModerationJobExecutor self;
 
-    @Transactional
-    public void prepareAndExecute(Long jobId) throws Exception {
-        ModerationJob job = moderationJobRepository.findById(jobId)
-                .orElseThrow(() -> new IllegalArgumentException("Moderation job not found: " + jobId));
+    public ModerationJobExecutor(ModerationJobRepository moderationJobRepository,
+                                 PostRepository postRepository,
+                                 ModerationOrchestrator moderationOrchestrator,
+                                 @Lazy ModerationJobExecutor moderationJobExecutor) {
+        this.moderationJobRepository = moderationJobRepository;
+        this.postRepository = postRepository;
+        this.moderationOrchestrator = moderationOrchestrator;
+        this.self = moderationJobExecutor;
+    }
 
-        if (job.getStatus() == ModerationJobStatus.DONE
-                || job.getStatus() == ModerationJobStatus.FAILED) {
-            return;
-        }
-
-        job.setStatus(ModerationJobStatus.PROCESSING);
-        job.setRetryCount(job.getRetryCount() + 1);
-        moderationJobRepository.save(job);
-
-        this.execute(jobId);
+    public void prepareAndExecute(Long jobId) {
+        self.markProcessing(jobId);
+        self.execute(jobId);
     }
 
     @Retryable(
@@ -51,26 +45,25 @@ public class ModerationJobExecutor {
                     java.io.IOException.class,
                     java.net.ConnectException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 2000, multiplier = 2)
+            maxAttempts = 2,
+            backoff = @Backoff(delay = 2000)
     )
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void execute(Long jobId) throws Exception {
-        ModerationJob job = moderationJobRepository.findById(jobId)
-                .orElseThrow(() -> new IllegalArgumentException("Moderation job not found: " + jobId));
+    public void execute(Long jobId) {
+        Optional<ModerationJob> optJob = moderationJobRepository.findById(jobId);
+        if (optJob.isEmpty())
+            return;
 
+        ModerationJob job = optJob.get();
         switch (job.getTargetType()) {
             case POST -> moderationOrchestrator.processPost(job);
             case COMMENT -> moderationOrchestrator.processComment(job);
         }
 
-        job.setStatus(ModerationJobStatus.DONE);
-        moderationJobRepository.save(job);
+        self.markDone(jobId);
     }
 
     @Recover
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recover(Exception ex, Long jobId) {
+    public void recover(Throwable ex, Long jobId) {
         ModerationJob job = moderationJobRepository.findById(jobId)
                 .orElseThrow(() -> new IllegalArgumentException("Moderation job not found: " + jobId));
 
@@ -80,18 +73,29 @@ public class ModerationJobExecutor {
             job.setStatus(ModerationJobStatus.PENDING);
         } else {
             job.setStatus(ModerationJobStatus.FAILED);
-            this.markTargetNeedsReview(job);
         }
 
         moderationJobRepository.save(job);
     }
 
-    private void markTargetNeedsReview(ModerationJob job) {
-        if (Objects.requireNonNull(job.getTargetType()) == TargetType.POST) {
-            Post post = postRepository.findById(job.getTargetId())
-                    .orElseThrow(() -> new IllegalArgumentException("Post not found: " + job.getTargetId()));
-            post.setStatus(PostStatus.UNDER_REVIEW);
-            postRepository.save(post);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void markProcessing(Long jobId) {
+        ModerationJob job = moderationJobRepository.findById(jobId).orElseThrow();
+
+        if (job.getStatus() == ModerationJobStatus.DONE
+                || job.getStatus() == ModerationJobStatus.FAILED) {
+            return;
         }
+
+        job.setStatus(ModerationJobStatus.PROCESSING);
+        job.setRetryCount(job.getRetryCount() + 1);
+        moderationJobRepository.save(job);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void markDone(Long jobId) {
+        ModerationJob job = moderationJobRepository.findById(jobId).orElseThrow();
+        job.setStatus(ModerationJobStatus.DONE);
+        moderationJobRepository.save(job);
     }
 }
