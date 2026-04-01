@@ -37,6 +37,8 @@ public enum AppError {
     FILE_NOT_ALLOW("File type not allow", HttpStatus.BAD_REQUEST),
 
     NOTI_NOT_FOUND("Notification not found", HttpStatus.NOT_FOUND),
+
+    POST_NOT_UNDER_REVIEW("Post is not under review", HttpStatus.BAD_REQUEST),
     ;
 
     private final String message;
