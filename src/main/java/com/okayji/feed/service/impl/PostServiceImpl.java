@@ -23,7 +23,6 @@ import com.okayji.moderation.entity.TargetType;
 import com.okayji.moderation.repository.ModerationJobRepository;
 import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,8 +50,8 @@ public class PostServiceImpl implements PostService {
 
         return postMapper.toPostResponse(post,
                 reactionRepository.existsByPostIdAndUserId(post.getId(), viewerId),
-                reactionRepository.countByPost_Id(post.getId()),
-                commentRepository.countByPost_Id(post.getId())
+                reactionRepository.countByPostId(post.getId()),
+                commentRepository.countByPostId(post.getId())
         );
     }
 
@@ -127,15 +126,15 @@ public class PostServiceImpl implements PostService {
 
         Page<Post> postPage;
         if (user.getId().equals(viewerId))
-            postPage = postRepository.findByUser_Id(user.getId(), pageable);
+            postPage = postRepository.findByUserId(user.getId(), pageable);
         else
             postPage = postRepository.findPublishedPostsByUser_Id(user.getId(), pageable);
 
         return postPage.map(post -> postMapper
                 .toPostResponse(post,
                         reactionRepository.existsByPostIdAndUserId(post.getId(), viewerId),
-                        reactionRepository.countByPost_Id(post.getId()),
-                        commentRepository.countByPost_Id(post.getId())
+                        reactionRepository.countByPostId(post.getId()),
+                        commentRepository.countByPostId(post.getId())
                 )
         );
     }

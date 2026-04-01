@@ -28,7 +28,7 @@ public class WebSocketSecurityConfig {
                     String chatId = String.valueOf(ctx.getVariables().get("chatId"));
                     String userId = auth.get().getName();
                     boolean ok = chatMemberRepository
-                            .existsByChat_IdAndMember_Id(chatId, userId);
+                            .existsByChatIdAndMemberId(chatId, userId);
                     return new AuthorizationDecision(ok);
                 })
 

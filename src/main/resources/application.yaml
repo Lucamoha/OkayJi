@@ -5,7 +5,9 @@ server:
 
 app:
   ffmpeg:
-    path: C:/Program Files/ffmpeg/bin/ffmpeg.exe # based on your device
+    path: C:/Program Files/ffmpeg/bin/ffmpeg.exe # based on your device.
+                                                 # If u dont have, download at
+                                                 # https://www.ffmpeg.org/download.html
   front-end-domain: "http://localhost:5173,http://localhost:8080"
 
 spring:

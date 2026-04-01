@@ -97,7 +97,7 @@ public class CommentServiceImpl implements CommentService {
         Pageable pageable = PageRequest
                 .of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        return commentRepository.findByPost_Id(postId, pageable)
+        return commentRepository.findByPostId(postId, pageable)
                 .map(commentMapper::toCommentResponse);
     }
 }

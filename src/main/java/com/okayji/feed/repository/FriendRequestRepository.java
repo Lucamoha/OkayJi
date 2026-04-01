@@ -7,11 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface FriendRequestRepository extends JpaRepository<FriendRequest,String> {
-    boolean existsBySender_IdAndReceiver_Id(String senderId, String receiverId);
+    boolean existsBySenderIdAndReceiverId(String senderId, String receiverId);
 
     FriendRequest findBySenderAndReceiver(User sender, User receiver);
 
-    List<FriendRequest> findBySender_Id(String senderId);
+    List<FriendRequest> findBySenderId(String senderId);
 
-    List<FriendRequest> findByReceiver_Id(String receiverId);
+    List<FriendRequest> findByReceiverId(String receiverId);
 }

@@ -30,7 +30,7 @@ public class FeedServiceImpl implements FeedService {
     @Override
     public FeedResponse getFeed(String viewerId, int limit, Instant cursorTime, String cursorId) {
         List<String> friendIds = friendRepository
-                .findByUserLow_IdOrUserHigh_Id(viewerId, viewerId).stream()
+                .findByUserLowIdOrUserHighId(viewerId, viewerId).stream()
                 .map(friend -> friend.getUserLow().getId().equals(viewerId)
                         ? friend.getUserHigh().getId()
                         : friend.getUserLow().getId()

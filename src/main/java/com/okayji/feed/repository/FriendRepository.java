@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface FriendRepository extends JpaRepository<Friend,String> {
-    boolean existsByUserLow_IdAndUserHigh_Id(String userLowId, String userHighId);
+    boolean existsByUserLowIdAndUserHighId(String userLowId, String userHighId);
 
     Friend findByUserLowAndUserHigh(User userLow, User userHigh);
 
-    List<Friend> findByUserLow_IdOrUserHigh_Id(String userLowId, String userHighId);
+    List<Friend> findByUserLowIdOrUserHighId(String userLowId, String userHighId);
 }

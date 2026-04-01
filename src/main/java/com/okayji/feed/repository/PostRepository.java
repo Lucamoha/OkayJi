@@ -15,7 +15,7 @@ import java.util.Collection;
 public interface PostRepository extends JpaRepository<Post,String> {
     Page<Post> findByStatus(PostStatus status, Pageable pageable);
     long countByStatus(PostStatus status);
-    Page<Post> findByUser_Id(String userId, Pageable pageable);
+    Page<Post> findByUserId(String userId, Pageable pageable);
 
     @Query("""
         select p

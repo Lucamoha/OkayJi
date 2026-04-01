@@ -48,7 +48,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         // if friend
         var pair = PairUser.canonical(user, viewer);
-        if (friendRepository.existsByUserLow_IdAndUserHigh_Id(pair.getLow().getId(), pair.getHigh().getId())) {
+        if (friendRepository.existsByUserLowIdAndUserHighId(pair.getLow().getId(), pair.getHigh().getId())) {
             profileResponse.setFriend(true);
             return profileResponse;
         }

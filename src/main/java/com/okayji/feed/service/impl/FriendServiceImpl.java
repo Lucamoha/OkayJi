@@ -47,12 +47,12 @@ public class FriendServiceImpl implements FriendService {
         try {
             var pair = PairUser.canonical(sender, receiver);
 
-            if (friendRepository.existsByUserLow_IdAndUserHigh_Id(
+            if (friendRepository.existsByUserLowIdAndUserHighId(
                     pair.getLow().getId(),
                     pair.getHigh().getId()))
                 throw new AppException(AppError.FRIEND_ALREADY);
 
-            if (friendRequestRepository.existsBySender_IdAndReceiver_Id(
+            if (friendRequestRepository.existsBySenderIdAndReceiverId(
                     receiver.getId(),
                     sender.getId()))
                 throw new AppException(AppError.FRIEND_REQUEST_EXISTS);
@@ -123,7 +123,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public List<ProfileBasicResponse> getFriends(String userId) {
         return friendRepository
-                .findByUserLow_IdOrUserHigh_Id(userId, userId).stream()
+                .findByUserLowIdOrUserHighId(userId, userId).stream()
                 .map(friend -> profileMapper.toProfileBasicResponse(
                         friend.getUserLow().getId().equals(userId)
                         ? friend.getUserHigh().getProfile()
@@ -134,7 +134,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public List<FriendReqResponse> getFriendRequestSent(String userId) {
         return friendRequestRepository
-                .findBySender_Id(userId).stream()
+                .findBySenderId(userId).stream()
                 .map(friendRequest -> friendRequestMapper.toFriendReqResponse(
                         friendRequest,
                         profileMapper.toProfileBasicResponse(friendRequest.getSender().getProfile()),
@@ -146,7 +146,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public List<FriendReqResponse> getFriendRequestReceived(String userId) {
         return friendRequestRepository
-                .findByReceiver_Id(userId).stream()
+                .findByReceiverId(userId).stream()
                 .map(friendRequest -> friendRequestMapper.toFriendReqResponse(
                         friendRequest,
                         profileMapper.toProfileBasicResponse(friendRequest.getSender().getProfile()),

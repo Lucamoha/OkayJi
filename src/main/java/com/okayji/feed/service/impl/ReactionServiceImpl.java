@@ -14,6 +14,7 @@ import com.okayji.notification.service.NotificationFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,12 +40,14 @@ public class ReactionServiceImpl implements ReactionService {
             reactionRepository.save(reaction);
 
             // Ping noti to other user
-            notificationService.sendNotification(NotificationFactory.likePost(post, user));
+            if (!post.getUser().equals(user))
+                notificationService.sendNotification(NotificationFactory.likePost(post, user));
         }
         catch (DataIntegrityViolationException ignored) {}
     }
 
     @Override
+    @Transactional
     public void unlike(String userId, String postId) {
         if (reactionRepository.existsByPostIdAndUserId(postId, userId))
             reactionRepository.deleteByPostIdAndUserId(postId, userId);

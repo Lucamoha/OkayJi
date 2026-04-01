@@ -43,7 +43,7 @@ public class MessageServiceImpl implements MessageService {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new AppException(AppError.CHAT_NOT_FOUND));
         ChatMember chatMember = chatMemberRepository
-                .findByChat_IdAndMember_Id(chatId, userId)
+                .findByChatIdAndMemberId(chatId, userId)
                 .orElseThrow(() -> new AppException(AppError.UNAUTHORIZED));
 
         if (
@@ -80,7 +80,7 @@ public class MessageServiceImpl implements MessageService {
                 "/topic/chats/" + chatId + "/messages",
                 messageMapper.toMessageResponse(message)
         );
-        chatMemberRepository.findChatMembersByChat_Id(chatId).forEach(cm -> {
+        chatMemberRepository.findChatMembersByChatId(chatId).forEach(cm -> {
             User member = cm.getMember();
             messagingTemplate.convertAndSendToUser(
                     member.getId(),
@@ -100,7 +100,7 @@ public class MessageServiceImpl implements MessageService {
                 .orElseThrow(() -> new AppException(AppError.CHAT_NOT_FOUND));
 
         ChatMember chatMember = chatMemberRepository
-                .findByChat_IdAndMember_Id(chatId, userId)
+                .findByChatIdAndMemberId(chatId, userId)
                 .orElseThrow(() -> new AppException(AppError.UNAUTHORIZED));
 
         if (chatMember.getLastReadSeq() >= messageSeq)

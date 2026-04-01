@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ChatMemberRepository extends JpaRepository<ChatMember,Long> {
-    boolean existsByChat_IdAndMember_Id(String chat_id, String member_id);
+    boolean existsByChatIdAndMemberId(String chatId, String memberId);
 
-    List<ChatMember> findChatMembersByChat_Id(String chat_id);
+    List<ChatMember> findChatMembersByChatId(String chatId);
 
-    Optional<ChatMember> findByChat_IdAndMember_Id(String chat_id, String member_id);
+    Optional<ChatMember> findByChatIdAndMemberId(String chatId, String memberId);
 
     @Query("""
     select cm

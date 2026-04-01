@@ -56,8 +56,8 @@ public class PermissionCheck {
 
     public boolean isFriend(String userId, String friendId) {
         return userId.compareTo(friendId) < 0
-                ? friendRepository.existsByUserLow_IdAndUserHigh_Id(userId, friendId)
-                : friendRepository.existsByUserLow_IdAndUserHigh_Id(friendId, userId);
+                ? friendRepository.existsByUserLowIdAndUserHighId(userId, friendId)
+                : friendRepository.existsByUserLowIdAndUserHighId(friendId, userId);
     }
 
     public boolean canReadNotification(String userId, Long notificationId) {
@@ -67,7 +67,7 @@ public class PermissionCheck {
     }
 
     public boolean canAccessChat(String userId, String chatId) {
-        return chatMemberRepository.existsByChat_IdAndMember_Id(chatId, userId);
+        return chatMemberRepository.existsByChatIdAndMemberId(chatId, userId);
     }
 
     public boolean canAlterPost(String userId, String postId) {
