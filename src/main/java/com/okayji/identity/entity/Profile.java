@@ -27,6 +27,7 @@ public class Profile {
     String fullName;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     Gender gender = Gender.OTHER;
 
     String bio;
@@ -38,5 +39,6 @@ public class Profile {
     String coverImageUrl;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     ProfileVisibility visibility = ProfileVisibility.PUBLIC;
 }

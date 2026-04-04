@@ -8,7 +8,9 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CommentCreationRequest {
+    @NotBlank(message = "Post id is required")
     String postId;
-    @NotBlank(message = "Content must not be blank")
+
+    @NotBlank(message = "Content is required")
     String content;
 }

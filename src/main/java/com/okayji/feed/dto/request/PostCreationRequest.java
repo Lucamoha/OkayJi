@@ -11,7 +11,8 @@ import java.util.List;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PostCreationRequest {
-    @NotBlank(message = "Content must not be blank")
+    @NotBlank(message = "Content is required")
     String content;
+
     List<PostMediaDto> media;
 }

@@ -8,8 +8,9 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AbortUploadRequest {
-    @NotBlank(message = "File key must not be blank")
+    @NotBlank(message = "File key is required")
     String fileKey;
-    @NotBlank(message = "Upload id must not be blank")
+
+    @NotBlank(message = "Upload id is required")
     String uploadId;
 }

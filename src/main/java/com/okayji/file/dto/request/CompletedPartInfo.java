@@ -9,8 +9,9 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CompletedPartInfo {
-    @NotNull(message = "Part number must not be null")
+    @NotNull(message = "Part number is required")
     Integer partNumber;
-    @NotBlank(message = "Etag id must not be blank")
+
+    @NotBlank(message = "Etag id is required")
     String etag; // s3 response
 }

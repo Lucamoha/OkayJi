@@ -27,7 +27,7 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     @Operation(summary = "Log in", description = "Get access token by username and password")
-    public ApiResponse<AuthenticationResponse> logIn(@RequestBody AuthenticationRequest request) {
+    public ApiResponse<AuthenticationResponse> logIn(@RequestBody @Valid AuthenticationRequest request) {
         log.info("User login request: username={}", request.getUsername());
 
         return ApiResponse.<AuthenticationResponse>builder()

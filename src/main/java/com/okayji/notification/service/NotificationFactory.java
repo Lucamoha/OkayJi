@@ -12,6 +12,11 @@ import com.okayji.notification.entity.Notification;
 
 public class NotificationFactory {
 
+    private NotificationFactory() {
+        /* This utility class should not be instantiated */
+    }
+
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static Notification friendRequest(FriendRequest friendRequest) {

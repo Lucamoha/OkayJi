@@ -8,7 +8,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 public class UpdateGroupChatRequest {
-    @NotBlank(message = "Chat name must not be blank")
+    @NotBlank(message = "Chat name is required")
     String chatName;
+
     String chatAvatarUrl;
 }
