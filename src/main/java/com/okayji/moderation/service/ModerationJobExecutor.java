@@ -89,13 +89,11 @@ public class ModerationJobExecutor {
 
         job.setStatus(ModerationJobStatus.PROCESSING);
         job.setRetryCount(job.getRetryCount() + 1);
-        moderationJobRepository.save(job);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markDone(Long jobId) {
         ModerationJob job = moderationJobRepository.findById(jobId).orElseThrow();
         job.setStatus(ModerationJobStatus.DONE);
-        moderationJobRepository.save(job);
     }
 }

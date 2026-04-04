@@ -10,6 +10,7 @@ import com.okayji.identity.service.ProfileService;
 import com.okayji.utils.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,7 +61,7 @@ public class ProfileController {
 
     @PutMapping("/my-profile")
     @Operation(summary = "Update profile")
-    ApiResponse<ProfileResponse> updateProfile(@RequestBody ProfileUpdateRequest profileUpdateRequest,
+    ApiResponse<ProfileResponse> updateProfile(@RequestBody @Valid ProfileUpdateRequest profileUpdateRequest,
                                                @CurrentUser User currentUser) {
         return ApiResponse.<ProfileResponse>builder()
                 .success(true)

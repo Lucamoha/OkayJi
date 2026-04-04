@@ -153,6 +153,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    @Transactional
     public ChatResponse updateGroupChat(String groupId,
                                         UpdateGroupChatRequest updateGroupChatRequest) {
         Chat chat = chatRepository.findById(groupId)
@@ -173,11 +174,7 @@ public class ChatServiceImpl implements ChatService {
             chat.setChatAvatarUrl(updateGroupChatRequest.getChatAvatarUrl());
         }
 
-        chatRepository.save(chat);
-        return chatMapper.toChatResponse(
-                chat,
-                0
-        );
+        return chatMapper.toChatResponse(chat, 0);
     }
 
     @Override
@@ -206,15 +203,6 @@ public class ChatServiceImpl implements ChatService {
                 .map(chatMapper::toChatMemberResponse)
                 .toList();
     }
-
-//    @Override
-//    public Page<MessageResponse> getMessages(String chatId, int page, int size) {
-//        Sort sort = Sort.by(Sort.Direction.DESC, "seq");
-//        Pageable pageable = PageRequest.of(page, size, sort);
-//
-//        return messageRepository.findByChatId(chatId, pageable)
-//                .map(messageMapper::toMessageResponse);
-//    }
 
     @Override
     public ListMessageResponse getMessages(String chatId, int limit, Long cursorSeq) {

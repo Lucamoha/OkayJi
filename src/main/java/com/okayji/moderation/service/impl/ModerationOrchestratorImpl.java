@@ -14,6 +14,8 @@ import com.okayji.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,7 @@ public class ModerationOrchestratorImpl implements ModerationOrchestrator {
     private final CommentRepository commentRepository;
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processPost(ModerationJob job) {
         String postId = job.getTargetId();
         log.info("Received Post Moderation with post id={}", postId);
@@ -87,7 +90,6 @@ public class ModerationOrchestratorImpl implements ModerationOrchestrator {
         PostStatus newStatus = reject ? PostStatus.REJECTED : decideFromDb(job);
         log.info("Moderated post id={}, new post status={}", postId, newStatus);
         post.setStatus(newStatus);
-        postRepository.save(post);
 
         if (newStatus == PostStatus.REJECTED || newStatus == PostStatus.UNDER_REVIEW)
             notificationService.sendNotification(
@@ -96,6 +98,7 @@ public class ModerationOrchestratorImpl implements ModerationOrchestrator {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processComment(ModerationJob job) {
         String commentId = job.getTargetId();
         log.info("Received Comment Moderation with comment id={}", commentId);

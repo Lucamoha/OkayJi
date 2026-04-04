@@ -49,7 +49,6 @@ public class ReactionServiceImpl implements ReactionService {
     @Override
     @Transactional
     public void unlike(String userId, String postId) {
-        if (reactionRepository.existsByPostIdAndUserId(postId, userId))
-            reactionRepository.deleteByPostIdAndUserId(postId, userId);
+        reactionRepository.deleteForUnReact(userId, postId);
     }
 }

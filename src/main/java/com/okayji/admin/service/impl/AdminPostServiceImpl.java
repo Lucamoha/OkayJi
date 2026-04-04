@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -30,6 +31,7 @@ public class AdminPostServiceImpl implements AdminPostService {
     }
 
     @Override
+    @Transactional
     public PostResponse approvePost(String postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
@@ -38,11 +40,11 @@ public class AdminPostServiceImpl implements AdminPostService {
             throw new AppException(AppError.POST_NOT_UNDER_REVIEW);
 
         post.setStatus(PostStatus.PUBLISHED);
-        postRepository.save(post);
         return postMapper.toPostResponse(post);
     }
 
     @Override
+    @Transactional
     public PostResponse rejectPost(String postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
@@ -51,7 +53,6 @@ public class AdminPostServiceImpl implements AdminPostService {
             throw new AppException(AppError.POST_NOT_UNDER_REVIEW);
 
         post.setStatus(PostStatus.REJECTED);
-        postRepository.save(post);
         return postMapper.toPostResponse(post);
     }
 }

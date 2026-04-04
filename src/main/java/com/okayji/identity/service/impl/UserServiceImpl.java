@@ -59,11 +59,12 @@ public class UserServiceImpl implements UserService {
                 .build();
         user.setProfile(profile);
 
-        user = userRepository.save(user);
+        userRepository.saveAndFlush(user);
         return userMapper.toUserResponse(user);
     }
 
     @Override
+    @Transactional
     public void changePassword(String userId, UserChangePasswordRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));
@@ -76,7 +77,6 @@ public class UserServiceImpl implements UserService {
             throw new AppException(AppError.PASSWORD_NOT_MATCH);
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
     }
 
     @Override
@@ -96,7 +96,6 @@ public class UserServiceImpl implements UserService {
 
         user.setUsername(request.getNewUsername());
         user.setLastChangeUsername(Instant.now());
-        userRepository.save(user);
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +38,7 @@ public class CommentServiceImpl implements CommentService {
     private final ModerationJobRepository moderationJobRepository;
 
     @Override
+    @Transactional
     public CommentResponse createComment(String userId, CommentCreationRequest request) {
         String postId = request.getPostId();
         Post post = postRepository.findById(postId)
@@ -48,7 +50,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentMapper.toComment(request);
         comment.setUser(user);
         comment.setPost(post);
-        commentRepository.save(comment);
+        commentRepository.saveAndFlush(comment);
 
         // if commenter not post owner -> ping noti to post owner
         if (!post.getUser().getId().equals(user.getId()))
@@ -65,22 +67,24 @@ public class CommentServiceImpl implements CommentService {
                 .targetId(comment.getId())
                 .targetType(TargetType.COMMENT)
                 .build());
+
         return commentMapper.toCommentResponse(comment);
     }
 
     @Override
+    @Transactional
     public CommentResponse updateComment(String commentId, CommentUpdateRequest request) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(AppError.COMMENT_NOT_FOUND));
 
         commentMapper.updateComment(comment, request);
-        commentRepository.save(comment);
 
         moderationJobRepository.save(ModerationJob
                 .builder()
                 .targetId(commentId)
                 .targetType(TargetType.COMMENT)
                 .build());
+
         return commentMapper.toCommentResponse(comment);
     }
 

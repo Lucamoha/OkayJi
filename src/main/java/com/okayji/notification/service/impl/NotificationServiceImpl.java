@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -41,18 +42,18 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional
     public void readNotification(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new AppException(AppError.NOTI_NOT_FOUND));
         notification.setRead(true);
-        notificationRepository.save(notification);
     }
 
     @Override
+    @Transactional
     public void readAll(String userId) {
         List<Notification> notificationList = notificationRepository.findByUserIdAndRead(userId, false);
         notificationList.forEach(notification -> notification.setRead(true));
-        notificationRepository.saveAll(notificationList);
     }
 
     @Override

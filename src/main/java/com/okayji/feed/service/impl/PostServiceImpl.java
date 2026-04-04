@@ -44,6 +44,7 @@ public class PostServiceImpl implements PostService {
     private final ModerationJobRepository moderationJobRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public PostResponse getPostById(String viewerId, String id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
@@ -87,27 +88,30 @@ public class PostServiceImpl implements PostService {
                 .targetId(post.getId())
                 .targetType(TargetType.POST)
                 .build());
+
         return postMapper.toPostResponse(post);
     }
 
     @Override
+    @Transactional
     public PostResponse updatePost(String postId, PostUpdateRequest postUpdateRequest) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
 
         postMapper.updatePost(post, postUpdateRequest);
         post.setStatus(PostStatus.PENDING);
-        postRepository.save(post);
 
         moderationJobRepository.save(ModerationJob
                 .builder()
                 .targetId(post.getId())
                 .targetType(TargetType.POST)
                 .build());
+
         return postMapper.toPostResponse(post);
     }
 
     @Override
+    @Transactional
     public void deletePostById(String id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new AppException(AppError.POST_NOT_FOUND));
@@ -117,6 +121,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<PostResponse> getPostsByUser(String viewerId, String userIdOrUsername, int page, int size) {
         User user = userRepository.findUserByIdOrUsername(userIdOrUsername, userIdOrUsername)
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_FOUND));

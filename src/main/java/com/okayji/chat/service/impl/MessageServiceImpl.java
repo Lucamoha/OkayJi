@@ -46,19 +46,7 @@ public class MessageServiceImpl implements MessageService {
                 .findByChatIdAndMemberId(chatId, userId)
                 .orElseThrow(() -> new AppException(AppError.UNAUTHORIZED));
 
-        if (
-                (messageRequest.getType().equals(MessageType.IMAGE)
-                        && !S3MediaTypes.isImageType(s3Service
-                        .getContentTypeFromS3Url(messageRequest.getContent())))
-                || (messageRequest.getType().equals(MessageType.VIDEO)
-                        && !S3MediaTypes.isVideoType(s3Service
-                        .getContentTypeFromS3Url(messageRequest.getContent())))
-                || (messageRequest.getType().equals(MessageType.FILE)
-                        && !S3MediaTypes.isAllowedFileType(s3Service
-                        .getContentTypeFromS3Url(messageRequest.getContent())))
-        )
-                throw new AppException(AppError.INVALID_INPUT_DATA);
-
+        validateMessage(messageRequest);
 
         Message message = Message.builder()
                 .type(messageRequest.getType())
@@ -69,17 +57,18 @@ public class MessageServiceImpl implements MessageService {
                 .build();
         messageRepository.saveAndFlush(message);
 
+        // update chat
         chat.setLastMessageAt(Instant.now());
         chat.setLastMessageSeq(message.getSeq());
-        chatRepository.save(chat);
 
+        // update chat member
         chatMember.setLastReadSeq(message.getSeq());
-        chatMemberRepository.save(chatMember);
 
         messagingTemplate.convertAndSend(
                 "/topic/chats/" + chatId + "/messages",
                 messageMapper.toMessageResponse(message)
         );
+
         chatMemberRepository.findChatMembersByChatId(chatId).forEach(cm -> {
             User member = cm.getMember();
             messagingTemplate.convertAndSendToUser(
@@ -95,6 +84,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public void markAsRead(String chatId, String userId, Long messageSeq) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new AppException(AppError.CHAT_NOT_FOUND));
@@ -107,6 +97,17 @@ public class MessageServiceImpl implements MessageService {
             return;
 
         chatMember.setLastReadSeq(min(chat.getLastMessageSeq(), messageSeq));
-        chatMemberRepository.save(chatMember);
+    }
+
+    private void validateMessage(MessageRequest mesReq) {
+        if (
+             (mesReq.getType().equals(MessageType.IMAGE)
+                        && !S3MediaTypes.isImageType(s3Service.getContentTypeFromS3Url(mesReq.getContent())))
+             || (mesReq.getType().equals(MessageType.VIDEO)
+                        && !S3MediaTypes.isVideoType(s3Service.getContentTypeFromS3Url(mesReq.getContent())))
+             || (mesReq.getType().equals(MessageType.FILE)
+                        && !S3MediaTypes.isAllowedFileType(s3Service.getContentTypeFromS3Url(mesReq.getContent())))
+        )
+            throw new AppException(AppError.INVALID_INPUT_DATA);
     }
 }
